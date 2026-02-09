@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookAnalizer</title>
+    <link rel="stylesheet" href="static/style.css?v=1.1">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="glass-container">
+        <header>
+            <div style="position: absolute; top: 20px; left: 20px;">
+                <a href="http://localhost:5000" target="_blank" class="btn-secondary"
+                    style="text-decoration: none; font-size: 0.9rem;">🚀 Vai a Kronk Writer</a>
+            </div>
+            <h1>BookAnalizer</h1>
+            <p>Estrai personaggi e ruoli dai tuoi manoscritti con l'IA locale.</p>
+            <div style="position: absolute; top: 20px; right: 20px; display: flex; gap: 10px;">
+                <button id="home-btn" class="settings-btn" title="Torna alla Home" style="position: static;">🏠</button>
+                <button id="settings-btn" class="settings-btn" title="Configurazione LLM"
+                    style="position: static;">⚙️</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- START SELECTION VIEW -->
+            <section id="selection-view" class="selection-view">
+                <div class="selection-cards">
+                    <button class="selection-card" id="new-project-card">
+                        <div class="card-icon">📄</div>
+                        <h3>Nuova Analisi</h3>
+                        <p>Carica un nuovo file PDF o TXT per estrarre personaggi e dettagli.</p>
+                    </button>
+                    <button class="selection-card" id="resume-project-card">
+                        <div class="card-icon">📂</div>
+                        <h3>Riprendi Progetto</h3>
+                        <p>Continua a lavorare su un'analisi salvata in precedenza.</p>
+                    </button>
+                </div>
+
+                <!-- HIDDEN PROJECT LIST (Shown when resume-project-card is clicked) -->
+                <div id="project-list-container" class="project-list-container hidden">
+                    <button class="btn-back" id="back-to-selection">← Torna indietro</button>
+                    <h2>I Tuoi Progetti</h2>
+                    <div id="projects-grid" class="projects-grid">
+                        <p>Caricamento progetti...</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="upload-zone" class="upload-zone hidden">
+                <button class="btn-back" id="back-from-upload">← Torna indietro</button>
+                <div class="drop-area" id="drop-area">
+                    <p>Trascina qui il tuo file (PDF o TXT) o clicca per selezionare</p>
+                    <input type="file" id="file-input" accept=".txt,.pdf" hidden>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button id="start-import-btn" class="btn-secondary">📂 Oppure Importa JSON Precedente</button>
+                    <p style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">Il file verrà segmentato
+                        automaticamente in capitoli/POST.</p>
+                </div>
+            </section>
+
+            <section id="segmentation-view" class="segmentation-view hidden">
+                <div class="segmentation-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <button class="btn-back" id="back-from-segmentation">← Indietro</button>
+                        <button id="rescan-btn" class="btn-small" title="Rifà la segmentazione del testo"
+                            style="margin-left: auto;">🔄 Rifai Scansione</button>
+                    </div>
+                    <h2>Seleziona Capitoli da Analizzare</h2>
+                    <p>Il testo è stato diviso in segmenti. Seleziona quelli da elaborare.</p>
+                </div>
+
+                <div class="segmentation-controls">
+                    <button id="select-all-chunks" class="btn-secondary">Seleziona Tutti</button>
+                    <button id="deselect-all-chunks" class="btn-secondary">Deseleziona Tutti</button>
+                    <button id="start-granular-analysis-btn" class="btn-primary">🚀 Avvia Analisi Sequenziale</button>
+                </div>
+
+                <div id="chunks-list" class="chunks-list custom-scrollbar">
+                    <!-- Chunks injected here -->
+                </div>
+            </section>
+
+            <section id="results-area" class="results-area hidden">
+                <div class="header-controls" style="text-align: center; margin-bottom: 20px;">
+                    <h2 id="project-title" contenteditable="true"
+                        style="border-bottom: 1px dashed var(--glass-border); display: inline-block; padding: 0 10px;"
+                        title="Click to edit project title">Project Title</h2>
+                </div>
+
+                <!-- TABS -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="characters">👥 Characters</button>
+                    <button class="tab-btn" data-tab="world">🌍 World Building</button>
+                    <button class="tab-btn" data-tab="synopsis">📖 Sinossi</button>
+                </div>
+
+                <!-- CONTROLS (Shared or Specific? Shared for now, refine logic will adapt) -->
+                <div class="controls">
+                    <h2 id="section-title">Personaggi Trovati</h2>
+                    <div class="actions">
+                        <button id="refine-btn" class="btn-primary">✨ Refine with AI</button>
+                        <button id="export-btn" class="btn-secondary">💾 Export JSON</button>
+                        <button id="export-toon-btn" class="btn-secondary" title="Export per BIBBIA">📜 Export
+                            TOON</button>
+                        <button id="merge-results-btn" class="btn-primary" title="Unisci duplicati">🌪️ Unisci
+                            Risultati</button>
+                        <button id="back-to-selection-btn" class="btn-secondary"
+                            title="Torna alla selezione capitoli">🔙 Capitoli</button>
+                        <button id="send-bibbia-btn" class="btn-bibbia" title="Invia al Database Centrale">📚 Invia a
+                            BIBBIA</button>
+                        <button id="clear-results-btn" class="btn-secondary" title="Pulisci tutti i risultati"
+                            style="border: 1px solid #ff4444; color: #ffcccc;">🗑️ Clear</button>
+                        <button id="ignored-list-btn" class="btn-secondary" title="Gestisci entità ignorate">🚫
+                            Ignored</button>
+                        <input type="file" id="import-input" accept=".json" hidden>
+                    </div>
+                </div>
+
+                <!-- PROGRESS BAR -->
+                <div id="progress-container" class="progress-container hidden">
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill"></div>
+                    </div>
+                    <span id="progress-text" class="progress-text">Elaborazione...</span>
+                </div>
+
+                <!-- TAB CONTENT: CHARACTERS -->
+                <div id="character-grid" class="character-grid tab-content active">
+                    <!-- Characters injected here -->
+                </div>
+
+                <!-- TAB CONTENT: WORLD -->
+                <div id="world-grid" class="world-grid tab-content">
+                    <!-- World elements injected here -->
+                    <p style="text-align:center; color: var(--text-muted);">Use the "Refine" button to populate this
+                        section with world building elements.</p>
+                </div>
+
+                <!-- TAB CONTENT: SYNOPSIS -->
+                <div id="synopsis-container" class="synopsis-container tab-content">
+                    <div class="synopsis-controls">
+                        <button id="generate-synopsis-btn" class="btn-primary">✨ Genera Sinossi POST</button>
+                        <span id="synopsis-status" class="status-text"></span>
+                    </div>
+                    <div id="synopsis-list" class="synopsis-list">
+                        <p style="text-align:center; color: var(--text-muted);">Clicca "Genera Sinossi POST" per creare
+                            riassunti dei capitoli/sezioni del manoscritto.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>⚙️ Configurazione LLM</h3>
+
+            <div class="form-group">
+                <label for="setting-provider">Provider</label>
+                <select id="setting-provider">
+                    <option value="ollama">Ollama (Locale)</option>
+                    <option value="openai">OpenAI Compatible (ChatGPT)</option>
+                    <option value="gemini">Google Gemini</option>
+                    <option value="claude">Anthropic Claude</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="group-api-key">
+                <label for="setting-api-key">API Key</label>
+                <input type="password" id="setting-api-key" placeholder="sk-...">
+            </div>
+
+            <label for="setting-url">Base URL</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="setting-url" placeholder="http://127.0.0.1:11434" style="flex-grow: 1;">
+                <button id="test-connection-btn" class="btn-accent" title="Test e Scarica Modelli">📶 Test</button>
+            </div>
+            <small>Per Ollama o OpenAI Custom</small>
+            <div id="connection-status" class="status-text" style="margin-top: 5px; font-size: 0.8rem;"></div>
+
+            <div class="form-group">
+                <label for="setting-model">Modello</label>
+                <div class="model-select-row">
+                    <input type="text" id="setting-model-input" class="hidden" placeholder="Es. gpt-4o, gemini-pro">
+                    <select id="setting-model">
+                        <option value="gpt-oss:latest">gpt-oss:latest</option>
+                    </select>
+                    <button id="refresh-models-btn" class="btn-icon" title="Aggiorna lista modelli">↻</button>
+                    <button id="toggle-model-input-btn" class="btn-icon" title="Input manuale">✏️</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="setting-ctx">Context Window (num_ctx)</label>
+                <input type="number" id="setting-ctx" placeholder="32768" value="32768">
+                <small>Imposta in base al modello. Gemma3: 128k, Llama3: 131k</small>
+            </div>
+
+            <div class="form-group">
+                <label for="setting-timeout">Timeout (secondi)</label>
+                <input type="number" id="setting-timeout" placeholder="180" value="180">
+                <small>Tempo massimo per ogni richiesta AI</small>
+            </div>
+
+            <div class="modal-actions">
+                <button id="cancel-settings" class="btn-secondary">Annulla</button>
+                <button id="save-settings" class="btn-primary">Salva</button>
+            </div>
+
+            <button id="close-settings" class="modal-close">✕</button>
+        </div>
+    </div>
+
+    <!-- Ignored List Modal -->
+    <div id="ignored-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>🚫 Entità Ignorate (Blacklist)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Questi elementi verranno
+                scartati automaticamente dalle future analisi.</p>
+            <div id="ignored-list" class="custom-scrollbar"
+                style="max-height: 300px; overflow-y: auto; border: 1px solid var(--glass-border); padding: 10px; margin-bottom: 10px;">
+                <!-- Items injected here -->
+            </div>
+            <div class="modal-actions">
+                <button id="close-ignored" class="btn-primary">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/app.js?v=1.2"></script>
+</body>
+
+</html>

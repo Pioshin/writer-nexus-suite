@@ -1,0 +1,45 @@
+@ MONDO
+  + galassia: Ephemera, 46.000 anni luce dalla Via Lattea
+  + pianeta_principale: Terrax, rocce cantanti, fiumi al contrario
+  + governo: Triumvirato (Hal Seldon, Asimov Kress, Ripley Foster)
+  + tecnologia: motori iperluce, tunnel temporale, Mach5000
+  + tono: fusione rigore Asimov + demenziale Adams
+
+@ RAZZE
+  + umanidi: abitanti di Terrax, bipedi vari colori
+  + spaziali: esuli da Terrax, pelle grigia, logici, viaggiatori tempo
+  + [future]: altre 3 razze da svelare nei volumi 2-3
+
+@ PROTAGONISTI (4 attuali + 2 futuri)
+  + hector: Hector "No-one" Starborn, tecnico help desk, antieroe
+    | razza: umanide
+    | tratti: sarcastico, fame cronica, incompetente sociale
+    | arco: da tecnico a ISCIS (Inviato Speciale)
+  + sheila: Sheila Evening/Mornin, pianeta Malaffare
+    | razza: umanide (Malaffare)
+    | tratti: eroina, emotiva, empatica
+    | ruolo: cardine storia d'amore con Hector
+  + kenla: Kenla Quilah, comandante Squadra 3G
+    | razza: spaziale
+    | tratti: veterana, pragmatica, spara laser attraverso aghi
+  + darwin: Dr. Jules Darwin, scienziato TERRA, barba bianca
+    | razza: spaziale
+    | tratti: razionale, arrestato, conosce segreto stelle
+  + [futuro_1]: da definire nei prossimi volumi
+  + [futuro_2]: da definire nei prossimi volumi
+
+@ PERSONAGGI_PRINCIPALI
+  + joyl: Joyl Cond-Horr, pilota tattico 3G
+    | razza: spaziale
+    | tratti: muscoli, malumore, cinico
+  + souvenir: robot 3G, ossessionato reality show
+    | razza: robot
+    | tratti: pedante, balbuziente, logico irritante
+  + galilei: Prof. Nikola Galilei, TECO, ossessionato pendoli
+    | razza: umanide
+    | tratti: geniale, distratto, macchina caffè temporale
+
+@ REGOLE_NARRATIVE
+  + burocrazia: controlli assurdi, moduli infiniti
+  + paradossi: viaggi tempo, eco nave, inversione CPT
+  + umorismo: digressioni, battute meta, riferimenti pop anni '80

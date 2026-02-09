@@ -1,0 +1,12 @@
+Flask
+requests
+numpy
+opencv-contrib-python
+faiss-cpu
+sentence-transformers
+tqdm
+Pillow
+PyPDF2
+qrcode
+python-dotenv
+memvid>=0.1.3

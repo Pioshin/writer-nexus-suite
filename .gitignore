@@ -1,0 +1,9 @@
+**/__pycache__/
+**/.venv/
+**/venv/
+**/*.pyc
+**/.DS_Store
+kronk/history/*.json
+bka/projects/*.json
+kronk/sandbox/
+

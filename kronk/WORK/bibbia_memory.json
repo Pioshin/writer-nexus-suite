@@ -1,0 +1,81 @@
+{
+  "metadata": [
+    {
+      "id": 0,
+      "text": "DNA DEL MONDO:\n@ MONDO\n  + galassia: Ephemera, 46.000 anni luce dalla Via Lattea\n  + pianeta_principale: Terrax, rocce cantanti, fiumi al contrario\n  + governo: Triumvirato (Hal Seldon, Asimov Kress, Ripley Foster)\n  + tecnologia: motori iperluce, tunnel temporale, Mach5000\n  + tono: fusione rigore Asimov + demenziale Adams\n\n@ RAZZE\n  + umanidi: abitanti di Terrax, bipedi vari colori\n  + spaziali: esuli da Terrax, pelle grigia, logici, viaggiatori tempo\n  + [future]: altre 3 razze da svelare nei volumi 2-3\n\n@ PROTAGONISTI (4 attuali + 2 futuri)\n  + hector: Hector \"No-one\" Starborn, tecnico help desk, antieroe\n    | razza: umanide\n    | tratti: sarcastico, fame cronica, incompetente sociale\n    | arco: da tecnico a ISCIS (Inviato Speciale)\n  + sheila: Sheila Evening/Mornin, pianeta Malaffare\n    | razza: umanide (Malaffare)\n    | tratti: eroina, emotiva, empatica\n    | ruolo: cardine storia d'amore con Hector\n  + kenla: Kenla Quilah, comandante Squadra 3G\n    | razza: spaziale\n    | tratti: veterana, pragmatic",
+      "frame": 0,
+      "length": 1024
+    },
+    {
+      "id": 1,
+      "text": "| tratti: veterana, pragmatica, spara laser attraverso aghi\n  + darwin: Dr. Jules Darwin, scienziato TERRA, barba bianca\n    | razza: spaziale\n    | tratti: razionale, arrestato, conosce segreto stelle\n  + [futuro_1]: da definire nei prossimi volumi\n  + [futuro_2]: da definire nei prossimi volumi\n\n@ PERSONAGGI_PRINCIPALI\n  + joyl: Joyl Cond-Horr, pilota tattico 3G\n    | razza: spaziale\n    | tratti: muscoli, malumore, cinico\n  + souvenir: robot 3G, ossessionato reality show\n    | razza: robot\n    | tratti: pedante, balbuziente, logico irritante\n  + galilei: Prof. Nikola Galilei, TECO, ossessionato pendoli\n    | razza: umanide\n    | tratti: geniale, distratto, macchina caff\u00e8 temporale\n\n@ REGOLE_NARRATIVE\n  + burocrazia: controlli assurdi, moduli infiniti\n  + paradossi: viaggi tempo, eco nave, inversione CPT\n  + umorismo: digressioni, battute meta, riferimenti pop anni '80",
+      "frame": 1,
+      "length": 883
+    },
+    {
+      "id": 2,
+      "text": "CRONACA CAPITOLI:\n# SINOSSI MASTER - Riassunti Capitoli\n# Questo file cresce con il libro. Ogni capitolo completato va aggiunto qui.\n# Formato: @ cap_N seguito da riassunto denso in TOON",
+      "frame": 2,
+      "length": 186
+    }
+  ],
+  "chunk_to_frame": {
+    "0": 0,
+    "1": 1,
+    "2": 2
+  },
+  "frame_to_chunks": {
+    "0": [
+      0
+    ],
+    "1": [
+      1
+    ],
+    "2": [
+      2
+    ]
+  },
+  "config": {
+    "qr": {
+      "version": 35,
+      "error_correction": "M",
+      "box_size": 5,
+      "border": 3,
+      "fill_color": "black",
+      "back_color": "white"
+    },
+    "codec": "h265",
+    "chunking": {
+      "chunk_size": 1024,
+      "overlap": 32
+    },
+    "retrieval": {
+      "top_k": 5,
+      "batch_size": 100,
+      "max_workers": 4,
+      "cache_size": 1000
+    },
+    "embedding": {
+      "model": "embeddinggemma:latest",
+      "dimension": 768
+    },
+    "index": {
+      "type": "Flat",
+      "nlist": 100
+    },
+    "llm": {
+      "model": "gemini-2.0-flash-exp",
+      "max_tokens": 8192,
+      "temperature": 0.1,
+      "context_window": 32000
+    },
+    "chat": {
+      "max_history": 10,
+      "context_chunks": 5
+    },
+    "performance": {
+      "prefetch_frames": 50,
+      "decode_timeout": 10
+    }
+  }
+}

@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="it" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ollama Sandbox UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        scifi: {
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            500: '#3b82f6',
+                            400: '#60a5fa',
+                            accent: '#10b981'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* Scrollbar custom per un look cyber */
+        .section-header {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .section-content {
+            transition: max-height 0.3s ease-in-out, opacity 0.2s ease-in-out;
+            overflow-y: auto;
+        }
+
+        .section-content.collapsed {
+            max-height: 0 !important;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .rotate-icon {
+            transition: transform 0.2s;
+        }
+
+        .collapsed .rotate-icon {
+            transform: rotate(-90deg);
+        }
+    </style>
+</head>
+
+<body class="bg-scifi-900 text-slate-200 h-screen flex overflow-hidden font-sans antialiased">
+
+    <aside class="w-64 bg-scifi-800 border-r border-slate-700 flex flex-col transition-all duration-300" id="sidebar">
+        <!-- SUITE NAV -->
+        <div class="p-4 pb-0">
+            <a href="http://localhost:8000" target="_blank"
+                class="block w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-center rounded-lg text-xs font-bold transition-all border border-slate-600">
+                📊 Vai a Analyst
+            </a>
+        </div>
+
+        <!-- TASTO NUOVA CHAT -->
+        <div class="p-4 border-b border-slate-700 shrink-0">
+            <button onclick="createNewChat()"
+                class="w-full py-2 bg-scifi-500 hover:bg-scifi-400 text-white rounded-lg flex items-center justify-center gap-2 transition-all font-semibold shadow-lg shadow-scifi-500/20">
+                <span>+</span> Nuova Chat
+            </button>
+        </div>
+
+        <!-- SEZIONE CHAT -->
+        <div class="flex flex-col min-h-0">
+            <div onclick="toggleSection('chat-section')"
+                class="section-header p-3 flex justify-between items-center bg-slate-900/20 border-b border-slate-700/50">
+                <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Conversazioni</h3>
+                <span class="rotate-icon text-[10px] text-slate-500">▼</span>
+            </div>
+            <div id="chat-section" class="section-content flex-1 p-2 space-y-1" style="max-height: 40vh;">
+                <div id="chat-history-list" class="space-y-1">
+                    <!-- Caricate via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- SEZIONE FILE -->
+        <div class="flex flex-col flex-1 min-h-0 border-t border-slate-700/50">
+            <div onclick="toggleSection('file-section')"
+                class="section-header p-3 flex justify-between items-center bg-slate-900/20 border-b border-slate-700/50">
+                <h2 class="font-bold text-[10px] text-scifi-400 tracking-wider uppercase">Sandbox Files</h2>
+                <div class="flex gap-2 items-center">
+                    <button onclick="event.stopPropagation(); refreshFiles()" class="text-slate-500 hover:text-white"
+                        title="Aggiorna">↻</button>
+                    <span class="rotate-icon text-[10px] text-slate-500">▼</span>
+                </div>
+            </div>
+            <div id="file-section" class="section-content flex-1 p-2 space-y-1">
+                <div id="file-list" class="space-y-1">
+                    <div class="text-xs text-slate-500 text-center mt-4">Nessun file</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-700 text-[10px] text-slate-500 shrink-0">
+            Path: <span class="font-mono text-scifi-accent truncate block" id="current-path-display">./sandbox</span>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-row relative overflow-hidden">
+        <!-- CHAT AREA -->
+        <div class="flex-1 flex flex-col min-w-0 border-r border-slate-700/50 relative transition-all duration-300"
+            id="chat-panel">
+            <header
+                class="h-14 border-b border-slate-700 flex items-center px-6 bg-scifi-900/95 backdrop-blur z-10 shrink-0">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                    <span class="font-semibold text-slate-100">Ollama Local Core</span>
+                </div>
+                <div class="ml-auto flex items-center gap-4">
+                    <button onclick="openBibbia()" class="text-slate-400 hover:text-white transition-colors"
+                        title="BIBBIA - Contesto Narrativo">
+                        📖
+                    </button>
+                    <button onclick="openSettings()" class="text-slate-400 hover:text-white transition-colors"
+                        title="Impostazioni">
+                        ⚙️
+                    </button>
+                    <div class="text-xs text-slate-500" id="status-indicator">Ready</div>
+                </div>
+            </header>
+
+            <div id="chat-container" class="flex-1 overflow-y-auto p-6 space-y-6">
+                <div class="flex gap-4">
+                    <div
+                        class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
+                        AI</div>
+                    <div
+                        class="bg-scifi-800 p-4 rounded-lg rounded-tl-none max-w-2xl shadow-lg border border-slate-700">
+                        <p>Sistema online. Clicca sui file per vederne l'anteprima.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-scifi-900 border-t border-slate-700 shrink-0">
+                <div class="max-w-4xl mx-auto relative">
+                    <form id="chat-form" onsubmit="sendMessage(event)" class="relative">
+                        <input type="text" id="user-input"
+                            class="w-full bg-scifi-800 text-white placeholder-slate-500 border border-slate-600 rounded-xl py-3 pl-4 pr-12 focus:outline-none focus:border-scifi-500 focus:ring-1 focus:ring-scifi-500 transition-all shadow-inner"
+                            placeholder="Chiedimi di creare un file o di leggerne uno..." autocomplete="off">
+                        <button type="submit"
+                            class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-scifi-400 hover:text-white transition-colors">
+                            ➤
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- PREVIEW AREA -->
+        <div id="preview-panel"
+            class="w-0 bg-scifi-900 flex flex-col border-l border-slate-700 transition-all duration-300 overflow-hidden relative">
+            <div class="h-14 border-b border-slate-700 flex items-center px-4 justify-between bg-scifi-800/50">
+                <span class="font-mono text-sm text-scifi-400 truncate" id="preview-filename">No File Selected</span>
+                <button onclick="closePreview()" class="text-slate-500 hover:text-white">✕</button>
+            </div>
+            <div class="flex-1 overflow-auto p-4 bg-[#0d1117]">
+                <pre><code id="preview-content" class="text-sm font-mono text-slate-300 block"></code></pre>
+            </div>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center">
+        <div class="bg-scifi-800 border border-slate-700 rounded-xl p-6 w-full max-w-md shadow-2xl relative">
+            <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                ⚙️ Configurazione Ollama
+            </h3>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1 pointer-events-none">Ollama API URL</label>
+                    <input type="text" id="setting-url"
+                        class="w-full bg-slate-900/50 border border-slate-700 rounded p-2 text-sm text-white focus:border-scifi-500 outline-none"
+                        placeholder="http://localhost:11434/api/chat">
+                </div>
+
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1 pointer-events-none">Model Name</label>
+                    <div class="flex gap-2">
+                        <select id="setting-model"
+                            class="flex-1 bg-slate-900/50 border border-slate-700 rounded p-2 text-sm text-white focus:border-scifi-500 outline-none appearance-none">
+                            <option value="llama3">llama3</option>
+                        </select>
+                        <button onclick="fetchModels()"
+                            class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white"
+                            title="Aggiorna lista modelli">↻</button>
+                        <button onclick="unloadModel()"
+                            class="px-2 py-1 bg-red-900/50 hover:bg-red-700 border border-red-800 rounded text-xs text-red-200"
+                            title="Scarica modello dalla memoria">🛑</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1 pointer-events-none">Sandbox Path</label>
+                    <input type="text" id="setting-path"
+                        class="w-full bg-slate-900/50 border border-slate-700 rounded p-2 text-sm text-white focus:border-scifi-500 outline-none"
+                        placeholder="./sandbox">
+                    <p class="text-[10px] text-slate-500 mt-1">Percorso locale assoluto o relativo</p>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1 pointer-events-none">Keep Alive</label>
+                    <input type="text" id="setting-keep-alive"
+                        class="w-full bg-slate-900/50 border border-slate-700 rounded p-2 text-sm text-white focus:border-scifi-500 outline-none"
+                        placeholder="5m">
+                    <p class="text-[10px] text-slate-500 mt-1">Durata modello in memoria (es. 5m, 1h, -1 per sempre)</p>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1 pointer-events-none">Context Window
+                        (num_ctx)</label>
+                    <input type="number" id="setting-context"
+                        class="w-full bg-slate-900/50 border border-slate-700 rounded p-2 text-sm text-white focus:border-scifi-500 outline-none"
+                        placeholder="32768">
+                    <p class="text-[10px] text-slate-500 mt-1">Dimensione finestra di contesto (es. 8192, 32768, 131072)
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button onclick="closeSettings()"
+                    class="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">Annulla</button>
+                <button onclick="saveSettings()"
+                    class="px-4 py-2 text-sm bg-scifi-500 hover:bg-blue-600 text-white rounded transition-colors shadow-lg shadow-blue-500/20">Salva</button>
+            </div>
+
+            <button onclick="closeSettings()" class="absolute top-4 right-4 text-slate-500 hover:text-white">✕</button>
+        </div>
+    </div>
+
+    <!-- BIBBIA Modal -->
+    <div id="bibbia-modal"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div id="bibbia-modal-content"
+            class="bg-scifi-800 border border-slate-700 rounded-xl shadow-2xl relative flex flex-col"
+            style="width: 900px; height: 600px; min-width: 400px; min-height: 300px; max-width: 95vw; max-height: 90vh; resize: both; overflow: hidden;">
+            <h3 class="text-xl font-bold text-white p-4 border-b border-slate-700 flex items-center gap-2 shrink-0">
+                📖 BIBBIA - Strategia del Cursore Narrativo
+                <span id="bibbia-token-count" class="ml-auto text-xs font-normal text-slate-400"></span>
+            </h3>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-slate-700 shrink-0">
+                <button onclick="switchBibbiaTab('dna')" id="tab-dna"
+                    class="px-4 py-2 text-sm font-medium text-scifi-400 border-b-2 border-scifi-500">🧬 DNA del
+                    Mondo</button>
+                <button onclick="switchBibbiaTab('cronaca')" id="tab-cronaca"
+                    class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white">📜 Cronaca</button>
+                <button onclick="switchBibbiaTab('fronte')" id="tab-fronte"
+                    class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white">⚡ Fronte
+                    Attivo</button>
+            </div>
+
+            <!-- Tab Content Container -->
+            <div class="flex-1 overflow-hidden">
+                <!-- DNA Tab -->
+                <div id="panel-dna" class="h-full flex flex-col p-4">
+                    <p class="text-xs text-slate-400 mb-2">Personaggi, regole mondo, tono narrativo. Questo va
+                        nel
+                        MODELFILE (~500 token).</p>
+                    <textarea id="bibbia-dna"
+                        class="flex-1 w-full bg-slate-900/50 border border-slate-700 rounded p-3 text-sm text-white font-mono focus:border-scifi-500 outline-none resize-none"
+                        placeholder="@ MONDO\n  + galassia: ...\n@ PERSONAGGI\n  + nome: descrizione"></textarea>
+                    <div class="mt-2 flex gap-2">
+                        <button onclick="generateModelfile()"
+                            class="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded text-xs">🔧
+                            Genera
+                            MODELFILE</button>
+                        <span id="dna-status" class="text-xs text-slate-500 self-center"></span>
+                    </div>
+                </div>
+
+                <!-- Cronaca Tab -->
+                <div id="panel-cronaca" class="h-full flex flex-col p-4 hidden">
+                    <p class="text-xs text-slate-400 mb-2">Riassunti capitoli compressi. Cresce con il libro
+                        (~3-4k
+                        token).</p>
+                    <textarea id="bibbia-sinossi"
+                        class="flex-1 w-full bg-slate-900/50 border border-slate-700 rounded p-3 text-sm text-white font-mono focus:border-scifi-500 outline-none resize-none"
+                        placeholder="# Riassunti Capitoli\n@ cap_1\n  + titolo: ...\n  + fatti: ..."></textarea>
+                    <div class="mt-2 flex gap-2">
+                        <input type="number" id="add-cap-num" value="1" min="1"
+                            class="w-16 bg-slate-900/50 border border-slate-700 rounded p-1 text-xs text-white">
+                        <button onclick="addChapterSynopsis()"
+                            class="px-3 py-1 bg-green-600 hover:bg-green-500 text-white rounded text-xs">+
+                            Aggiungi
+                            Riassunto</button>
+                    </div>
+                </div>
+
+                <!-- Fronte Attivo Tab -->
+                <div id="panel-fronte" class="h-full flex flex-col p-4 hidden">
+                    <p class="text-xs text-slate-400 mb-2">Ultimi N capitoli integrali per riferimento
+                        stilistico
+                        (~8-10k token).</p>
+                    <div class="flex gap-2 mb-2">
+                        <label class="text-xs text-slate-400">Romanzo:</label>
+                        <input type="text" id="novel-path" value="TESTI/Galactic Powder Ephemera.md"
+                            class="flex-1 bg-slate-900/50 border border-slate-700 rounded p-1 text-xs text-white">
+                        <label class="text-xs text-slate-400">Ultimi N cap:</label>
+                        <input type="number" id="last-n-chapters" value="4" min="1" max="10"
+                            class="w-16 bg-slate-900/50 border border-slate-700 rounded p-1 text-xs text-white">
+                    </div>
+                    <button onclick="buildNarrativePrompt()"
+                        class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs self-start mb-2">🔄
+                        Genera Prompt Completo</button>
+                    <textarea id="bibbia-prompt-preview"
+                        class="flex-1 w-full bg-slate-900/50 border border-slate-700 rounded p-3 text-sm text-slate-400 font-mono outline-none resize-none"
+                        readonly placeholder="Clicca 'Genera Prompt' per vedere l'anteprima..."></textarea>
+                    <p id="prompt-token-estimate" class="text-xs text-slate-500 mt-1"></p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-slate-700 flex justify-end gap-3 shrink-0">
+                <button onclick="closeBibbia()"
+                    class="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">Chiudi</button>
+                <button onclick="saveBibbia()"
+                    class="px-4 py-2 text-sm bg-scifi-500 hover:bg-blue-600 text-white rounded transition-colors shadow-lg shadow-blue-500/20">💾
+                    Salva BIBBIA</button>
+            </div>
+
+            <button onclick="closeBibbia()" class="absolute top-4 right-4 text-slate-500 hover:text-white">✕</button>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal"
+        class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-scifi-800 border border-slate-600 rounded-xl p-6 w-full max-w-md shadow-2xl shadow-scifi-500/20">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-2">
+                <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">⚙️ Configurazione AI</h3>
+                <button onclick="closeSettings()" class="text-slate-400 hover:text-white text-xl">✕</button>
+            </div>
+
+            <div class="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">PROVIDER</label>
+                    <select id="setting-provider" onchange="toggleProviderFields()"
+                        class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
+                        <option value="ollama">Ollama (Locale)</option>
+                        <option value="openai">OpenAI Compatible</option>
+                        <option value="gemini">Google Gemini</option>
+                        <option value="claude">Anthropic Claude</option>
+                    </select>
+                </div>
+
+                <div id="group-api-key" class="hidden">
+                    <label class="block text-xs font-bold text-slate-400 mb-1">API KEY</label>
+                    <input type="password" id="setting-api-key" placeholder="sk-..."
+                        class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
+                </div>
+
+                <div id="group-url">
+                    <label class="block text-xs font-bold text-slate-400 mb-1">URL (Base)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="setting-url" placeholder="http://127.0.0.1:11434"
+                            class="flex-1 bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
+                        <button onclick="testConnection()"
+                            class="px-3 py-2 bg-scifi-500/20 hover:bg-scifi-500 text-scifi-accent hover:text-white border border-scifi-500/50 rounded font-bold text-xs transition-all">
+                            Test
+                        </button>
+                    </div>
+                    <p id="connection-status-modal" class="text-[10px] mt-1 h-3"></p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">MODELLO</label>
+                    <div class="flex gap-2">
+                        <select id="setting-model"
+                            class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
+                            <option value="gpt-oss:latest">gpt-oss:latest</option>
+                        </select>
+                        <input type="text" id="setting-model-input"
+                            class="hidden w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none"
+                            placeholder="Nome modello...">
+                        <button onclick="fetchModels()"
+                            class="p-2 bg-slate-700 hover:bg-slate-600 rounded text-slate-300"
+                            title="Refresh">↻</button>
+                        <button onclick="toggleModelInput()"
+                            class="p-2 bg-slate-700 hover:bg-slate-600 rounded text-slate-300"
+                            title="Toggle Input">✏️</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">SANDBOX PATH</label>
+                    <input type="text" id="setting-path" value="./sandbox"
+                        class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 mb-1">CONTESTO</label>
+                        <input type="number" id="setting-context" value="32768"
+                            class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 mb-1">KEEP ALIVE</label>
+                        <input type="text" id="setting-keep-alive" value="5m"
+                            class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-700">
+                <button onclick="closeSettings()"
+                    class="px-4 py-2 text-slate-400 hover:text-white text-sm">Annulla</button>
+                <button onclick="saveSettings()"
+                    class="px-4 py-2 bg-scifi-500 hover:bg-scifi-400 text-white rounded font-bold shadow-lg shadow-scifi-500/20">Salva
+                    Configurazione</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const fileList = document.getElementById('file-list');
+        const chatHistoryList = document.getElementById('chat-history-list');
+        const statusIndicator = document.getElementById('status-indicator');
+
+        let chatHistory = [];
+        let currentChatId = null;
+
+        function toggleSection(id) {
+            const section = document.getElementById(id);
+            const parent = section.parentElement;
+            section.classList.toggle('collapsed');
+            parent.classList.toggle('collapsed');
+        }
+
+        // Settings elements
+        const settingsModal = document.getElementById('settings-modal');
+        const settingProvider = document.getElementById('setting-provider');
+        const settingApiKey = document.getElementById('setting-api-key');
+        const groupApiKey = document.getElementById('group-api-key');
+        const groupUrl = document.getElementById('group-url');
+        const settingUrlInput = document.getElementById('setting-url');
+        const settingModelSelect = document.getElementById('setting-model');
+        const settingModelInput = document.getElementById('setting-model-input');
+        const settingPathInput = document.getElementById('setting-path');
+        const settingKeepAliveInput = document.getElementById('setting-keep-alive');
+        const settingContextInput = document.getElementById('setting-context');
+        const currentPathDisplay = document.getElementById('current-path-display');
+
+        // Defaults
+        const DEFAULTS = {
+            provider: 'ollama',
+            url: "http://localhost:11434",
+            model: "gpt-oss:latest",
+            path: "./sandbox",
+            keep_alive: "5m",
+            context: 32768,
+            api_key: ""
+        };
+
+        // Load Settings
+        function loadSettings() {
+            return {
+                provider: localStorage.getItem('ba_provider') || DEFAULTS.provider,
+                url: localStorage.getItem('ollama_url') || DEFAULTS.url,
+                model: localStorage.getItem('ollama_model') || DEFAULTS.model,
+                path: localStorage.getItem('sandbox_path') || DEFAULTS.path,
+                keep_alive: localStorage.getItem('ollama_keep_alive') || DEFAULTS.keep_alive,
+                context: parseInt(localStorage.getItem('ollama_context') || DEFAULTS.context),
+                api_key: localStorage.getItem('ba_api_key') || DEFAULTS.api_key
+            };
+        }
+
+        function toggleProviderFields() {
+            const provider = settingProvider.value;
+            if (provider === 'ollama') {
+                groupUrl.classList.remove('hidden');
+                groupApiKey.classList.add('hidden');
+            } else if (provider === 'openai') {
+                groupUrl.classList.remove('hidden');
+                groupApiKey.classList.remove('hidden');
+            } else {
+                groupUrl.classList.add('hidden');
+                groupApiKey.classList.remove('hidden');
+            }
+        }
+
+        function toggleModelInput() {
+            if (settingModelSelect.classList.contains('hidden')) {
+                settingModelSelect.classList.remove('hidden');
+                settingModelInput.classList.add('hidden');
+            } else {
+                settingModelSelect.classList.add('hidden');
+                settingModelInput.classList.remove('hidden');
+                settingModelInput.value = settingModelSelect.value;
+            }
+        }
+
+        function openSettings() {
+            const s = loadSettings();
+            settingProvider.value = s.provider;
+            settingUrlInput.value = s.url;
+            settingPathInput.value = s.path;
+            settingKeepAliveInput.value = s.keep_alive;
+            settingContextInput.value = s.context;
+            settingApiKey.value = s.api_key;
+
+            toggleProviderFields();
+
+            if (s.provider === 'ollama') {
+                fetchModels().then(() => {
+                    settingModelSelect.value = s.model;
+                });
+            } else {
+                // Manual input for online providers
+                settingModelInput.value = s.model;
+                settingModelSelect.classList.add('hidden');
+                settingModelInput.classList.remove('hidden');
+            }
+
+            settingsModal.classList.remove('hidden');
+        }
+
+        function closeSettings() {
+            settingsModal.classList.add('hidden');
+        }
+
+        async function saveSettings() {
+            const provider = settingProvider.value;
+            const url = settingUrlInput.value.trim() || DEFAULTS.url;
+            const path = settingPathInput.value.trim() || DEFAULTS.path;
+            const keep_alive = settingKeepAliveInput.value.trim() || DEFAULTS.keep_alive;
+            const context = parseInt(settingContextInput.value.trim()) || DEFAULTS.context;
+            const apiKey = settingApiKey.value.trim();
+
+            let model = settingModelSelect.value;
+            if (!settingModelInput.classList.contains('hidden')) {
+                model = settingModelInput.value.trim();
+            }
+
+            localStorage.setItem('ba_provider', provider);
+            localStorage.setItem('ollama_url', url);
+            localStorage.setItem('ollama_model', model);
+            localStorage.setItem('sandbox_path', path);
+            localStorage.setItem('ollama_keep_alive', keep_alive);
+            localStorage.setItem('ollama_context', context);
+            localStorage.setItem('ba_api_key', apiKey);
+
+            // Sync with Backend Global LLM
+            try {
+                await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        provider, url, model, api_key: apiKey, ctx: context, timeout: 180, keep_alive
+                    })
+                });
+            } catch (e) { console.error("Config sync failed", e); }
+
+            closeSettings();
+            refreshFiles();
+
+            statusIndicator.innerText = "Config updated";
+            setTimeout(() => { statusIndicator.innerText = "Ready"; }, 2000);
+        }
+
+        // Close on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape") closeSettings();
+        });
+
+        // Carica i file e le chat all'avvio
+        refreshFiles();
+        loadChatHistoryList();
+        createNewChat(); // Inizia con una chat nuova se vuoto
+
+        async function createNewChat() {
+            currentChatId = 'chat_' + Date.now();
+            chatHistory = [];
+            chatContainer.innerHTML = '';
+
+            // Messaggio di benvenuto di Kuzco/Kronk
+            appendMessage('assistant', "Ciao! Sono Kronk. Cosa possiamo cucinare oggi in questa sandbox?");
+
+            // Forza rifresco lista per evidenziare selezione
+            loadChatHistoryList();
+        }
+
+        async function loadChatHistoryList() {
+            try {
+                const res = await fetch('/chats');
+                const chats = await res.json();
+                chatHistoryList.innerHTML = '';
+
+                if (chats.length === 0) {
+                    chatHistoryList.innerHTML = '<div class="text-[10px] text-slate-600 px-2 italic">Nessuna chat</div>';
+                    return;
+                }
+
+                chats.forEach(chat => {
+                    const div = document.createElement('div');
+                    const isActive = chat.id === currentChatId;
+                    div.className = `group p-2 rounded text-xs cursor-pointer truncate transition-all flex justify-between items-center ${isActive ? 'bg-scifi-500/20 border-l-2 border-scifi-500 text-white' : 'text-slate-400 hover:bg-slate-700 hover:text-slate-200'}`;
+
+                    const titleSpan = document.createElement('span');
+                    titleSpan.className = "truncate flex-1";
+                    titleSpan.innerText = chat.title;
+                    titleSpan.onclick = () => switchChat(chat.id);
+
+                    const timeDiv = document.createElement('div');
+                    timeDiv.className = "text-[9px] opacity-50 mr-2";
+                    timeDiv.innerText = chat.timestamp.split(' ')[1] || '';
+
+                    const renameBtn = document.createElement('button');
+                    renameBtn.className = "opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-white";
+                    renameBtn.innerHTML = "✎";
+                    renameBtn.title = "Rinomina";
+                    renameBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        renameChat(chat.id, chat.title);
+                    };
+
+                    div.appendChild(titleSpan);
+                    div.appendChild(timeDiv);
+                    div.appendChild(renameBtn);
+
+                    chatHistoryList.appendChild(div);
+                });
+            } catch (e) { console.error("Err chats", e); }
+
+        }
+
+        async function testConnection() {
+            const statusEl = document.getElementById('connection-status-modal');
+            statusEl.innerText = "⏳ Testing...";
+            statusEl.className = "text-[10px] mt-1 h-3 text-slate-400 animate-pulse";
+
+            const provider = settingProvider.value;
+            const url = settingUrlInput.value.trim() || DEFAULTS.url;
+            const apiKey = settingApiKey.value.trim();
+            const model = settingModelSelect.value; // Keep current model if possible
+
+            try {
+                // 1. Sync config to backend
+                await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        provider, url, model, api_key: apiKey
+                    })
+                });
+
+                // 2. Fetch models (Backend now uses global_llm_client which we just updated)
+                const res = await fetch('/models'); // existing endpoint
+                const data = await res.json();
+
+                if (data.models || Array.isArray(data)) {
+                    // Normalize list
+                    const models = data.models || data;
+                    statusEl.innerText = `✅ OK! ${models.length} modelli disponibili.`;
+                    statusEl.className = "text-[10px] mt-1 h-3 text-scifi-accent font-bold";
+
+                    // Refresh dropdown
+                    settingModelSelect.innerHTML = '';
+                    models.forEach(m => {
+                        const mName = m.name || m;
+                        const opt = document.createElement('option');
+                        opt.value = mName;
+                        opt.innerText = mName;
+                        settingModelSelect.appendChild(opt);
+                    });
+
+                } else {
+                    throw new Error("Formato risposta non valido");
+                }
+            } catch (e) {
+                console.error(e);
+                statusEl.innerText = "❌ Errore: " + e.message;
+                statusEl.className = "text-[10px] mt-1 h-3 text-red-400 font-bold";
+            }
+        }
+
+        async function renameChat(chatId, oldTitle) {
+            const newTitle = prompt("Nuovo nome chat:", oldTitle);
+            if (!newTitle || newTitle === oldTitle) return;
+
+            try {
+                const res = await fetch('/chat/rename', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, new_title: newTitle })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    loadChatHistoryList();
+                } else {
+                    alert("Errore: " + data.error);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function switchChat(id) {
+            try {
+                const res = await fetch(`/chat/${id}`);
+                const data = await res.json();
+                if (data.error) return;
+
+                currentChatId = id;
+                chatHistory = data.history;
+                chatContainer.innerHTML = '';
+
+                // Ricostruisci UI dalla history
+                chatHistory.forEach(msg => {
+                    appendMessage(msg.role, msg.content);
+                });
+
+                loadChatHistoryList(); // Aggiorna selezione visuale
+            } catch (e) { console.error("Err switch", e); }
+        }
+
+        async function refreshFiles() {
+            try {
+                const settings = loadSettings();
+                // Mostriamo il path corrente nel sidebar
+                // Nota: per ora è quello salvato, poi il backend ci darà conferma del path assoluto risolto
+
+                const res = await fetch(`/files?path=${encodeURIComponent(settings.path)}`);
+                const data = await res.json();
+
+                // Aggiorna display path con quello reale risolto dal server
+                if (data.current_path) {
+                    // Solo il nome cartella finale per brevità, o full path? Meglio full ma troncato visivamente
+                    currentPathDisplay.innerText = data.current_path.split('/').pop() || data.current_path;
+                    currentPathDisplay.title = data.current_path;
+                }
+
+                fileList.innerHTML = '';
+                if (data.files.length === 0) {
+                    fileList.innerHTML = '<div class="text-xs text-slate-500 text-center mt-4">Folder vuoto</div>';
+                    return;
+                }
+                data.files.forEach(file => {
+                    const div = document.createElement('div');
+                    div.className = 'p-2 rounded bg-slate-800/50 hover:bg-slate-700 border border-slate-700/50 cursor-pointer text-sm flex items-center gap-2 transition-colors';
+                    // Backward compatibility: check if file is string or object
+                    const fileName = file.name || file;
+                    const fileDisplay = file.display || file;
+                    div.onclick = () => previewFile(fileName);
+                    div.innerHTML = `<span class="text-scifi-accent">📄</span> <span class="truncate">${fileDisplay}</span>`;
+                    fileList.appendChild(div);
+                });
+            } catch (e) {
+                console.error("Errore fetch files", e);
+            }
+        }
+
+        function appendMessage(role, text, action = null) {
+            const div = document.createElement('div');
+            div.className = `flex gap-4 ${role === 'user' ? 'flex-row-reverse' : ''}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${role === 'user' ? 'bg-scifi-500' : 'bg-indigo-600'}`;
+            avatar.innerText = role === 'user' ? 'IO' : 'AI';
+
+            const bubble = document.createElement('div');
+            bubble.className = `p-4 rounded-lg max-w-3xl shadow-lg border border-slate-700 text-sm leading-relaxed ${role === 'user' ? 'bg-slate-700 rounded-tr-none' : 'bg-scifi-800 rounded-tl-none prose prose-invert max-w-none'}`;
+
+            // Se è l'IA, usiamo Marked per il rendering, altrimenti testo semplice
+            if (role === 'assistant') {
+                bubble.innerHTML = marked.parse(text);
+                if (action) {
+                    const actionBadge = document.createElement('div');
+                    actionBadge.className = "mt-2 text-xs text-scifi-accent font-mono bg-green-900/20 border border-green-900/50 p-1 rounded inline-block";
+                    actionBadge.innerText = `System Action: ${action}`;
+                    bubble.appendChild(actionBadge);
+                }
+            } else {
+                bubble.innerText = text;
+            }
+
+            div.appendChild(avatar);
+            div.appendChild(bubble);
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function sendMessage(e) {
+            e.preventDefault();
+            const msg = userInput.value.trim();
+            if (!msg) return;
+
+            appendMessage('user', msg);
+            userInput.value = '';
+            statusIndicator.innerText = "Thinking...";
+            statusIndicator.className = "text-xs text-scifi-400 animate-pulse";
+
+            // Create Assistant Bubble immediately
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = "flex gap-4";
+
+            const avatar = document.createElement('div');
+            avatar.className = "w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold shrink-0";
+            avatar.innerText = "AI";
+
+            const bubbleContent = document.createElement('div');
+            bubbleContent.className = "p-4 rounded-lg rounded-tl-none max-w-3xl shadow-lg border border-slate-700 text-sm leading-relaxed bg-scifi-800 prose prose-invert max-w-none";
+            bubbleContent.innerText = "...";
+
+            bubbleDiv.appendChild(avatar);
+            bubbleDiv.appendChild(bubbleContent);
+            chatContainer.appendChild(bubbleDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            let fullText = "";
+
+            try {
+                const settings = loadSettings();
+
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: currentChatId,
+                        message: msg,
+                        history: chatHistory,
+                        ollama_url: settings.url,
+                        model: settings.model,
+                        sandbox_path: settings.path,
+                        keep_alive: settings.keep_alive,
+                        num_ctx: settings.context
+                    })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let lineBuffer = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    lineBuffer += decoder.decode(value, { stream: true });
+                    const lines = lineBuffer.split('\n');
+                    lineBuffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const data = JSON.parse(line);
+
+                            if (data.token) {
+                                if (fullText === "") bubbleContent.innerText = ""; // Pulisce il caricamento iniziale
+                                fullText += data.token;
+
+                                // NASCONDI I COMANDI [[...]] DALL'INTERFACCIA UTENTE
+                                // Usiamo una versione pulita per il rendering markdown
+                                let displayText = fullText.replace(/\[\[.*?\]\]/gs, '');
+                                bubbleContent.innerHTML = marked.parse(displayText);
+
+                                chatContainer.scrollTop = chatContainer.scrollHeight;
+                            }
+
+                            if (data.action) {
+                                if (bubbleContent.innerText === "...") bubbleContent.innerText = "";
+                                const actionBadge = document.createElement('div');
+                                actionBadge.className = "mt-2 text-xs text-scifi-accent font-mono bg-green-900/20 border border-green-900/50 p-1 rounded inline-block";
+                                actionBadge.innerText = `⚙️ ${data.action}`;
+                                bubbleContent.appendChild(document.createElement('br'));
+                                bubbleContent.appendChild(actionBadge);
+
+                                if (data.action.includes('Scritto') || data.action.includes('Letto')) {
+                                    refreshFiles();
+                                }
+                            }
+
+                            if (data.error) {
+                                bubbleContent.innerHTML += `<br><span class="text-red-500">Error: ${data.error}</span>`;
+                            }
+
+                        } catch (e) {
+                            console.warn("JSON Parse error on line:", line, e);
+                        }
+                    }
+                }
+
+                // Aggiorna history
+                chatHistory.push({ role: "user", content: msg });
+                chatHistory.push({ role: "assistant", content: fullText });
+                if (chatHistory.length > 10) chatHistory = chatHistory.slice(-10);
+
+                // Aggiorna lista sidebar per vedere titoli/timestamp
+                loadChatHistoryList();
+
+            } catch (err) {
+                bubbleContent.innerHTML += `<br><span class="text-red-500">Critical Error: ${err}</span>`;
+            } finally {
+                statusIndicator.innerText = "Ready";
+                statusIndicator.className = "text-xs text-slate-500";
+            }
+        }
+
+        // Preview Logic
+        const previewPanel = document.getElementById('preview-panel');
+        const previewFilename = document.getElementById('preview-filename');
+        const previewContent = document.getElementById('preview-content');
+
+        async function previewFile(filename) {
+            const settings = loadSettings();
+            try {
+                // Fetch file content
+                const res = await fetch(`/read?filename=${encodeURIComponent(filename)}&path=${encodeURIComponent(settings.path)}`);
+                const data = await res.json();
+
+                if (data.error) {
+                    alert("Error reading file");
+                    return;
+                }
+
+                // Show Panel
+                previewPanel.classList.remove('w-0');
+                previewPanel.classList.add('w-1/2'); // or w-2/3
+
+                previewFilename.innerText = filename;
+                previewContent.textContent = data.content; // Use textContent to escape HTML
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function closePreview() {
+            previewPanel.classList.remove('w-1/2');
+            previewPanel.classList.add('w-0');
+        }
+
+        async function fetchModels() {
+            const settingModelSelect = document.getElementById('setting-model');
+            const currentModel = settingModelSelect.value || localStorage.getItem('ollama_model') || DEFAULT_MODEL;
+            const url = document.getElementById('setting-url').value;
+
+            try {
+                const res = await fetch(`/models?ollama_url=${encodeURIComponent(url)}`);
+                const data = await res.json();
+
+                if (data.models) {
+                    settingModelSelect.innerHTML = '';
+                    data.models.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m.name;
+                        opt.innerText = m.name;
+                        if (m.name === currentModel) opt.selected = true;
+                        settingModelSelect.appendChild(opt);
+                    });
+
+                    // Se il modello corrente non è in lista, aggiungilo comunque per non rompere
+                    if (![...settingModelSelect.options].some(o => o.value === currentModel)) {
+                        const opt = document.createElement('option');
+                        opt.value = currentModel;
+                        opt.innerText = currentModel + " (custom)";
+                        opt.selected = true;
+                        settingModelSelect.appendChild(opt);
+                    }
+                }
+            } catch (e) {
+                console.error("Error fetching models", e);
+            }
+        }
+
+        async function unloadModel() {
+            const model = document.getElementById('setting-model').value;
+            const url = document.getElementById('setting-url').value;
+            if (!confirm(`Vuoi scaricare il modello ${model} dalla memoria?`)) return;
+
+            try {
+                const res = await fetch('/unload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model: model, ollama_url: url })
+                });
+                const data = await res.json();
+                alert(data.message);
+            } catch (e) {
+                alert("Errore unload: " + e);
+            }
+        }
+
+        // ==================== BIBBIA FUNCTIONS ====================
+        const bibbiaModal = document.getElementById('bibbia-modal');
+        const bibbiaDna = document.getElementById('bibbia-dna');
+        const bibbiaSinossi = document.getElementById('bibbia-sinossi');
+        const bibbiaTokenCount = document.getElementById('bibbia-token-count');
+
+        async function openBibbia() {
+            bibbiaModal.classList.remove('hidden');
+            await loadBibbia();
+        }
+
+        function closeBibbia() {
+            bibbiaModal.classList.add('hidden');
+        }
+
+        function switchBibbiaTab(tab) {
+            // Reset all tabs
+            ['dna', 'cronaca', 'fronte'].forEach(t => {
+                document.getElementById(`tab-${t}`).className = 'px-4 py-2 text-sm font-medium text-slate-400 hover:text-white';
+                document.getElementById(`panel-${t}`).classList.add('hidden');
+            });
+            // Activate selected
+            document.getElementById(`tab-${tab}`).className = 'px-4 py-2 text-sm font-medium text-scifi-400 border-b-2 border-scifi-500';
+            document.getElementById(`panel-${tab}`).classList.remove('hidden');
+        }
+
+        async function loadBibbia() {
+            try {
+                const res = await fetch('/bibbia/load');
+                const data = await res.json();
+                if (data.success) {
+                    bibbiaDna.value = data.dna || '';
+                    bibbiaSinossi.value = data.sinossi || '';
+                    updateTokenCount(data.dna_tokens, data.sinossi_tokens);
+                }
+            } catch (e) {
+                console.error('Errore caricamento BIBBIA:', e);
+            }
+        }
+
+        async function saveBibbia() {
+            try {
+                const res = await fetch('/bibbia/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dna: bibbiaDna.value })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('dna-status').innerText = `✓ Salvato (${data.tokens} token)`;
+                    setTimeout(() => { document.getElementById('dna-status').innerText = ''; }, 3000);
+                } else {
+                    alert('Errore: ' + data.error);
+                }
+            } catch (e) {
+                alert('Errore salvataggio: ' + e);
+            }
+        }
+
+        async function generateModelfile() {
+            try {
+                const res = await fetch('/bibbia/generate-modelfile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`MODELFILE generato!\n\nPath: ${data.path}\n\nPer usarlo:\nollama create adam -f ${data.path}`);
+                } else {
+                    alert('Errore: ' + data.error);
+                }
+            } catch (e) {
+                alert('Errore generazione: ' + e);
+            }
+        }
+
+        async function addChapterSynopsis() {
+            const capNum = document.getElementById('add-cap-num').value;
+            const riassunto = prompt(`Inserisci il riassunto denso del Capitolo ${capNum}:`);
+            if (!riassunto) return;
+
+            try {
+                const res = await fetch('/bibbia/add-synopsis', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ capitolo: parseInt(capNum), riassunto: riassunto })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    await loadBibbia(); // Ricarica per vedere il nuovo riassunto
+                    document.getElementById('add-cap-num').value = parseInt(capNum) + 1;
+                } else {
+                    alert('Errore: ' + data.error);
+                }
+            } catch (e) {
+                alert('Errore: ' + e);
+            }
+        }
+
+        async function buildNarrativePrompt() {
+            const novelPath = document.getElementById('novel-path').value;
+            const lastN = document.getElementById('last-n-chapters').value;
+
+            try {
+                const res = await fetch('/bibbia/build-prompt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        novel_path: novelPath,
+                        include_sinossi: true,
+                        last_n_chapters: parseInt(lastN)
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('bibbia-prompt-preview').value = data.prompt;
+                    document.getElementById('prompt-token-estimate').innerText = `~${data.tokens} token stimati`;
+                } else {
+                    alert('Errore: ' + data.error);
+                }
+            } catch (e) {
+                alert('Errore: ' + e);
+            }
+        }
+
+        function updateTokenCount(dna, sinossi) {
+            const total = (dna || 0) + (sinossi || 0);
+            bibbiaTokenCount.innerText = `DNA: ~${dna || 0} | Cronaca: ~${sinossi || 0} | Totale: ~${total} token`;
+        }
+
+        // Close BIBBIA on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape") {
+                closeBibbia();
+                closeSettings();
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,365 @@
+import json
+import time
+from llm_client import LLMClient
+
+class OllamaClient:
+    def __init__(self, model="gpt-oss:latest", base_url="http://127.0.0.1:11434", provider="ollama", api_key="", ctx=32768, timeout=180, keep_alive="5m"):
+        self.client = LLMClient(
+            provider=provider,
+            model=model,
+            base_url=base_url,
+            api_key=api_key,
+            ctx=ctx,
+            timeout=timeout,
+            keep_alive=keep_alive
+        )
+
+    def update_config(self, provider=None, model=None, base_url=None, api_key=None, ctx=None, timeout=None, keep_alive=None):
+        """Update configuration dynamically."""
+        self.client.update_config(provider, model, base_url, api_key, ctx, timeout, keep_alive)
+
+    def extract_json(self, text):
+        return self.client.extract_json(text)
+
+    def refine_with_streaming(self, prompt, on_token=None):
+        """
+        Esegue una richiesta LLM con streaming.
+        """
+        full_response = ""
+        try:
+            stream = self.client.chat([{"role": "user", "content": prompt}], stream=True)
+            for token in stream:
+                full_response += token
+                if on_token:
+                    on_token(token)
+        except Exception as e:
+            print(f"Streaming error: {e}")
+            raise
+        
+        return full_response
+
+    def refine_characters_streaming(self, char_list, on_progress=None):
+        """
+        Versione streaming di refine_characters con progress callback.
+        """
+        # 1. SORT to ensure duplicates (Hector, Hector Starborn) are adjacent
+        char_list.sort(key=lambda x: x.get("name", "").lower())
+        
+        batch_size = 20
+        refined_results = []
+        total_batches = (len(char_list) - 1) // batch_size + 1
+        
+        for i in range(0, len(char_list), batch_size):
+            batch = char_list[i : i + batch_size]
+            batch_num = i // batch_size + 1
+            
+            if on_progress:
+                on_progress({
+                    "type": "batch_start",
+                    "batch": batch_num,
+                    "total": total_batches,
+                    "message": f"Elaborazione batch {batch_num}/{total_batches}..."
+                })
+            
+            prompt = f"""
+            You are a literary editor expert in Italian literature.
+            I have a raw list of potential characters extracted from a text.
+            
+            INPUT DATA (JSON):
+            {json.dumps(batch, indent=2)}
+
+            YOUR TASKS:
+            1. CLEANUP: Identifying true characters. Remove non-persons.
+            2. MERGE: Combine duplicates/variations. 
+               - Example: "Hector", "Hector Starborn", "Hector 'no-one' Starborn" -> MUST becomes SINGLE entry "Hector Starborn".
+               - Merge roles and contexts.
+            7. ROLES: Infer role from context.
+            
+            IMPORTANT:
+            - OUTPUT VALUES (role, context) MUST BE IN ITALIAN.
+            - Even if keys are English, the content MUST be Italian.
+
+            OUTPUT FORMAT:
+            Return ONLY a raw JSON list of objects. No markdown.
+            Example: [ {{"name": "Renzo", "role": "Sposo"}} ]
+            """
+            
+            try:
+                tokens_received = []
+                def collect_token(token):
+                    tokens_received.append(token)
+                    if on_progress:
+                        on_progress({"type": "token", "token": token})
+                
+                response_text = self.refine_with_streaming(prompt, on_token=collect_token)
+                
+                batch_result = self.extract_json(response_text)
+                if isinstance(batch_result, list):
+                    refined_results.extend(batch_result)
+                    if on_progress:
+                        on_progress({
+                            "type": "batch_complete",
+                            "batch": batch_num,
+                            "items": len(batch_result)
+                        })
+            except Exception as e:
+                print(f"ERROR: Batch {batch_num} failed: {e}")
+                refined_results.extend(batch)
+                if on_progress:
+                    on_progress({"type": "error", "message": str(e)})
+        
+        return refined_results
+
+    def refine_characters(self, char_list):
+        """
+        Refine characters using batching (Non-streaming legacy support).
+        """
+        # 1. SORT to ensure duplicates (Hector, Hector Starborn) are adjacent
+        char_list.sort(key=lambda x: x.get("name", "").lower())
+        
+        batch_size = 20 # Increased context for better merging
+        refined_results = []
+        
+        for i in range(0, len(char_list), batch_size):
+            batch = char_list[i : i + batch_size]
+            print(f"DEBUG: Processing batch {i//batch_size + 1}...")
+            
+            prompt = f"""
+            You are a literary editor expert in Italian literature.
+            I have a raw list of potential characters extracted from a text.
+            
+            INPUT DATA (JSON):
+            {json.dumps(batch, indent=2)}
+
+            YOUR TASKS:
+            1. CLEANUP: Identifying true characters. Remove non-persons.
+            2. MERGE: Combine duplicates/variations. 
+               - Example: "Hector", "Hector Starborn", "Hector 'no-one' Starborn" -> MUST becomes SINGLE entry "Hector Starborn".
+               - Merge roles and contexts.
+            3. ROLES: Infer role from context.
+            
+            IMPORTANT:
+            - OUTPUT VALUES (role, context) MUST BE IN ITALIAN.
+            - Even if keys are English, the content MUST be Italian.
+
+            OUTPUT FORMAT:
+            Return ONLY a raw JSON list of objects. No markdown.
+            Example: [ {{"name": "Renzo", "role": "Sposo"}} ]
+            """
+            
+            try:
+                response_text = self.client.completion(prompt)
+                batch_result = self.extract_json(response_text)
+                
+                if isinstance(batch_result, list):
+                    refined_results.extend(batch_result)
+                else:
+                    refined_results.extend(batch)
+                    
+            except Exception as e:
+                print(f"ERROR: Batch failed: {e}")
+                refined_results.extend(batch)
+        
+        return refined_results
+
+    def refine_world_elements(self, world_list):
+        """
+        Refines world building elements.
+        """
+        batch_size = 8
+        refined_results = []
+        
+        for i in range(0, len(world_list), batch_size):
+            batch = world_list[i : i + batch_size]
+            print(f"DEBUG: Refining World Batch {i//batch_size + 1}...")
+            
+            prompt = f"""
+            You are a World Building expert assistant.
+            I have a raw list of extracted entities (Places, Organizations, Objects) from a manuscript.
+
+            CATEGORIES:
+            - "Place" (Luoghi, Cities, Buildings, Rooms)
+            - "Object" (Relevant items, Artifacts, Unique Weapons)
+            - "System" (Magic systems, Technology, Government, Economy, Payment methods)
+            - "Geography" (Natural environments, Mountains, Rivers, Weather)
+            - "History" (Myths, Legends, Historical events)
+            - "Culture" (Religions, Customs, Society, Festivals)
+
+            INPUT DATA (JSON):
+            {json.dumps(batch, indent=2)}
+
+            TASKS:
+            1. CLEANUP: Remove generic words, noise, or actual characters (people).
+            2. CATEGORIZE: Assign the best CATEGORY from the list above.
+            3. DESCRIPTION: Enhance 'raw_type' to a short description based on context.
+
+            IMPORTANT:
+            - OUTPUT VALUES (context, description) MUST BE IN ITALIAN.
+
+            OUTPUT FORMAT (JSON List):
+            [ {{"name": "Atlantis", "category": "Place", "context": "Città perduta..."}} ]
+            """
+            
+            try:
+                response_text = self.client.completion(prompt)
+                batch_result = self.extract_json(response_text)
+                if isinstance(batch_result, list):
+                    refined_results.extend(batch_result)
+                else:
+                    refined_results.extend(batch)
+            except Exception as e:
+                print(f"ERROR World Batch: {e}")
+                refined_results.extend(batch)
+
+        return refined_results
+
+    def generate_synopsis(self, text, num_posts=5):
+        """
+        Genera riassunti POST.
+        """
+        text_length = len(text)
+        chunk_size = text_length // num_posts
+        synopses = []
+        
+        for i in range(num_posts):
+            start = i * chunk_size
+            end = (i + 1) * chunk_size if i < num_posts - 1 else text_length
+            chunk = text[start:end]
+            
+            if end < text_length:
+                last_para = chunk.rfind('\\n\\n')
+                if last_para > chunk_size * 0.5:
+                    chunk = chunk[:last_para]
+            
+            print(f"DEBUG: Generating synopsis for POST {i+1}/{num_posts}...")
+            
+            prompt = f"""
+            Sei un esperto editor letterario italiano.
+            Ti viene fornito un estratto da un manoscritto. Crea un riassunto breve e coinvolgente per un "POST" (sezione/capitolo).
+            
+            ESTRATTO:
+            {chunk[:8000]}
+            
+            ISTRUZIONI:
+            1. Scrivi un riassunto di 2-3 frasi che catturi l'essenza di questa sezione
+            2. Menziona i personaggi principali coinvolti
+            3. Indica l'ambientazione se rilevante
+            4. Non usare spoiler per eventi futuri
+            
+            FORMATO OUTPUT:
+            Restituisci SOLO un JSON con questa struttura:
+            {{"post_number": {i+1}, "title": "Titolo breve", "summary": "Il riassunto..."}}
+            """
+            
+            try:
+                response_text = self.client.completion(prompt)
+                parsed = self.extract_json(response_text)
+                
+                if isinstance(parsed, list) and len(parsed) > 0:
+                    synopses.append(parsed[0])
+                elif isinstance(parsed, dict):
+                    synopses.append(parsed)
+                else:
+                    synopses.append({
+                        "post_number": i + 1,
+                        "title": f"POST {i+1}",
+                        "summary": "Impossibile generare riassunto"
+                    })
+            except Exception as e:
+                print(f"ERROR Synopsis {i+1}: {e}")
+                synopses.append({
+                    "post_number": i + 1,
+                    "title": f"POST {i+1}",
+                    "summary": f"Errore: {str(e)}"
+                })
+        
+        return synopses
+
+
+    def analyze_chunk(self, chunk, mode="characters"):
+        """
+        Analizza un singolo chunk di testo.
+        mode: 'characters' o 'world'
+        """
+        if mode == "characters":
+            prompt = f"""
+            Sei un esperto analista letterario.
+            Estrai i personaggi presenti in questo segmento di testo.
+            
+            TESTO:
+            {chunk[:6000]}
+            
+            ISTRUZIONI:
+            1. Estrai solo PERSONAGGI (Persone, Entità senzienti).
+            2. Ignora comparse senza nome.
+            3. Inferisci il ruolo dal contesto immediato.
+
+            IMPORTANT:
+            - OUTPUT VALUES (role, context) MUST BE IN ITALIAN.
+            
+            OUTPUT (JSON List):
+            [ {{"name": "Nome", "role": "Ruolo", "context": "Breve frase contesto"}} ]
+            """
+        else:
+             prompt = f"""
+            Sei un esperto di World Building.
+            Estrai elementi di ambientazione in questo segmento.
+            
+            TESTO:
+            {chunk[:6000]}
+            
+            CATEGORIE: Place, Object, System, History, Culture.
+
+            IMPORTANT:
+            - OUTPUT VALUES (context) MUST BE IN ITALIAN.
+            
+            OUTPUT (JSON List):
+            [ {{"name": "Nome", "category": "Categoria", "context": "Descrizione"}} ]
+            """
+            
+        try:
+            response_text = self.client.chat([{"role": "user", "content": prompt}])
+            return self.extract_json(response_text)
+        except Exception as e:
+            print(f"Chunk Analysis Error: {e}")
+            return []
+
+    def merge_results(self, results_list, mode="characters"):
+        """
+        Consolida una lista di risultati grezzi (unendo duplicati).
+        """
+        # Se la lista è troppo lunga, processiamola a batch anche qui o chiediamo un merge intelligente
+        # Per ora assumiamo che rientri nel contesto (o facciamo map-reduce se necessario).
+        
+        # Semplificazione: inviamo tutto all'LLM.
+        
+        prompt = f"""
+        Sei un Editor esperto. 
+        Ho una lista di {mode} estratti da vari capitoli. Ci sono duplicati e variazioni (es. "John", "John Doe").
+        
+        INPUT LIST:
+        {json.dumps(results_list, indent=2)}
+        
+        COMPITI:
+        1. Unifica i duplicati (scegli il nome più completo).
+        2. Somma eventuali conteggi (se presenti) o stima importanza.
+        2. Somma eventuali conteggi (se presenti) o stima importanza.
+        3. Unisci i contesti per creare una descrizione coerente.
+
+        IMPORTANT:
+        - OUTPUT VALUES (role, context) MUST BE IN ITALIAN.
+        
+        OUTPUT (JSON List):
+        Restituisci una lista pulita e consolidata.
+        """
+        
+        try:
+            response_text = self.client.chat([{"role": "user", "content": prompt}])
+            return self.extract_json(response_text)
+        except Exception as e:
+            print(f"Merge Error: {e}")
+            return results_list # Fallback: restituisci non unificato
+
+ollama_client = OllamaClient()
+
+
