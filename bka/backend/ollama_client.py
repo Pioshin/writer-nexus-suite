@@ -300,6 +300,22 @@ class OllamaClient:
             OUTPUT (JSON List):
             [ {{"name": "Nome", "role": "Ruolo", "context": "Breve frase contesto"}} ]
             """
+        elif mode == "synopsis":
+             prompt = f"""
+            Sei un esperto editor letterario italiano.
+            Ti viene fornito un estratto da un manoscritto. Crea un riassunto breve e coinvolgente.
+            
+            ESTRATTO:
+            {chunk[:6000]}
+            
+            ISTRUZIONI:
+            1. Scrivi un riassunto di 2-3 frasi che catturi l'essenza di questa sezione.
+            2. Menziona i personaggi principali coinvolti.
+            3. Indica l'ambientazione se rilevante.
+            
+            FORMATO OUTPUT (JSON):
+            {{"title": "Titolo breve", "summary": "Il riassunto..."}}
+            """
         else:
              prompt = f"""
             Sei un esperto di World Building.

@@ -97,20 +97,54 @@ document.addEventListener('DOMContentLoaded', () => {
             const resp = await fetch(`${settings.url}/api/tags`);
             const data = await resp.json();
             settingModel.innerHTML = '';
+            let modelFound = false;
+
             if (data.models && data.models.length > 0) {
                 data.models.forEach(m => {
                     const opt = document.createElement('option');
                     opt.value = m.name;
                     opt.textContent = m.name;
+                    if (m.name === settings.model) modelFound = true;
                     settingModel.appendChild(opt);
                 });
             } else {
                 settingModel.innerHTML = '<option value="gpt-oss:latest">gpt-oss:latest</option>';
             }
+
+            // Restore saved selection
+            if (modelFound) {
+                settingModel.value = settings.model;
+            } else if (settings.model) {
+                // Append saved model if missing from list (maybe offline or custom)
+                const opt = document.createElement('option');
+                opt.value = settings.model;
+                opt.textContent = `${settings.model} (Saved)`;
+                settingModel.appendChild(opt);
+                settingModel.value = settings.model;
+            }
+
         } catch (err) {
             console.error("Failed to fetch models:", err);
-            settingModel.innerHTML = '<option value="gpt-oss:latest">gpt-oss:latest (offline)</option>';
+            settingModel.innerHTML = `<option value="${settings.model || 'gpt-oss:latest'}">${settings.model || 'gpt-oss:latest'} (offline)</option>`;
         }
+    }
+
+    // ...
+
+    function goHome() {
+        // Hide all main views
+        selectionView.classList.remove('hidden');
+        uploadZone.classList.add('hidden');
+        segmentationView.classList.add('hidden');
+        resultsArea.classList.add('hidden');
+        if (projectListContainer) projectListContainer.classList.add('hidden'); // Fix: hide project list specifically
+
+        // Show selection cards again
+        const cards = selectionView.querySelector('.selection-cards');
+        if (cards) cards.classList.remove('hidden');
+
+        // Reset upload zone
+        if (dropArea) dropArea.innerHTML = `<p>Trascina qui il tuo file (PDF o TXT) o clicca per selezionare</p><input type="file" id="file-input" accept=".txt,.pdf" hidden>`;
     }
 
     async function saveSettings() {
@@ -379,6 +413,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Force hide on startup
+    if (ignoredModal) ignoredModal.classList.add('hidden');
+
     function renderIgnoredList() {
         ignoredListContainer.innerHTML = '';
         if (deletedEntities.size === 0) {
@@ -514,14 +551,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             renderResults(currentResults);
             renderWorld(currentWorldResults);
+            renderSynopsis(data.synopses || []);
+
+            // Reconstruct text from chunks for global synopsis support if not present
+            if (currentChunks.length > 0 && !currentManuscriptText) {
+                currentManuscriptText = currentChunks.map(c => c.text).join('\n\n');
+            }
 
             // Render chunks in background so back navigation works
             if (currentChunks.length > 0) renderSegmentationView(currentChunks);
-
-            if (projectTitleEl) projectTitleEl.textContent = currentFileName;
-
-            renderResults(currentResults);
-            renderWorld(currentWorldResults);
 
             selectionView.classList.add('hidden');
             resultsArea.classList.remove('hidden');
@@ -774,10 +812,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Determine mode based on active tab
-        const activeTabEl = document.querySelector('.tab-btn.active');
-        const activeTab = activeTabEl ? activeTabEl.getAttribute('data-tab') : 'characters';
-        const mode = activeTab === 'world' ? 'world' : 'characters';
+        // Determine mode based on radio buttons
+        const selectedModeEl = document.querySelector('input[name="analysis-mode"]:checked');
+        const mode = selectedModeEl ? selectedModeEl.value : 'characters';
 
         // Switch to result view immediately
         segmentationView.classList.add('hidden');
@@ -828,8 +865,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Add to global results
                 if (data.results) {
+                    // Normalize results to array
+                    const resultsArray = Array.isArray(data.results) ? data.results : [data.results];
                     // FILTER BLACKLISTED
-                    const filteredResults = data.results.filter(c => !isBlacklisted(c.name));
+                    const filteredResults = resultsArray.filter(c => !isBlacklisted(c.name || ''));
 
                     if (filteredResults.length < data.results.length) {
                         console.log(`Filtered ${data.results.length - filteredResults.length} blacklisted items.`);
@@ -838,6 +877,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (mode === 'world') {
                         currentWorldResults.push(...filteredResults);
                         renderWorld(currentWorldResults);
+                    } else if (mode === 'synopsis') {
+                        // Results for synopsis are usually a single object or {title, summary}
+                        // If analyze_chunk returns a list for consistency
+                        if (Array.isArray(filteredResults)) {
+                            filteredResults.forEach(syn => {
+                                currentSynopses.push({
+                                    post_number: chunk.id,
+                                    title: syn.title || `POST ${chunk.id}`,
+                                    summary: syn.summary || ''
+                                });
+                            });
+                        } else {
+                            currentSynopses.push({
+                                post_number: chunk.id,
+                                title: filteredResults.title || `POST ${chunk.id}`,
+                                summary: filteredResults.summary || ''
+                            });
+                        }
+                        renderSynopsis(currentSynopses);
                     } else {
                         currentResults.push(...filteredResults);
                         renderResults(currentResults);
@@ -855,6 +913,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         progressText.textContent = "Analisi Completata! Puoi consolidare i risultati ora.";
         progressFill.style.width = "100%";
+
+        // Auto-switch to correct tab
+        const targetTab = mode === 'synopsis' ? 'synopsis' : mode;
+        const tabBtn = document.querySelector(`.tab-btn[data-tab="${targetTab}"]`);
+        if (tabBtn) tabBtn.click();
+
         setTimeout(() => progressContainer.classList.add('hidden'), 3000);
 
         saveToServer();
@@ -1218,10 +1282,43 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         title: projectTitleEl.textContent.trim(),
-                        characters: currentResults,
-                        world: currentWorldResults,
-                        synopses: currentSynopses,
-                        sandbox_url: 'http://127.0.0.1:5000'  // Default Sandbox-UI URL
+                        // Scrape current UI state to ensure edits are captured
+                        characters: (function () {
+                            const chars = [];
+                            document.querySelectorAll('.character-card:not(.world-card)').forEach(card => {
+                                const name = card.querySelector('.editable-name').innerText.trim();
+                                const role = card.querySelector('.editable-role').innerText.trim();
+                                if (name) chars.push({ name, role });
+                            });
+                            return chars;
+                        })(),
+                        world: (function () {
+                            const world = [];
+                            document.querySelectorAll('.world-card').forEach(card => {
+                                const name = card.querySelector('.editable-name').innerText.trim();
+                                const category = card.querySelector('.delete-btn').getAttribute('data-cat');
+                                const rawType = card.querySelector('.editable-role').innerText.trim();
+                                const contextSnippet = card.querySelector('.context-snippet');
+                                const context = contextSnippet ? contextSnippet.innerText : "";
+                                if (name) world.push({ name, category, raw_type: rawType, context });
+                            });
+                            return world;
+                        })(),
+                        synopses: (function () {
+                            const syns = [];
+                            document.querySelectorAll('.synopsis-card').forEach((card, idx) => {
+                                const content = card.querySelector('.post-content');
+                                const titleEl = card.querySelector('.post-title');
+                                const numEl = card.querySelector('.post-number');
+                                syns.push({
+                                    post_number: idx + 1,
+                                    title: titleEl ? titleEl.textContent : `POST ${idx + 1}`,
+                                    summary: content ? content.innerText.trim() : ''
+                                });
+                            });
+                            return syns;
+                        })(),
+                        sandbox_url: 'http://127.0.0.1:5000'
                     })
                 });
 

@@ -158,29 +158,29 @@ def generate_synopsis_toon(post_num, riassunto):
 def to_bibbia_format(characters, world_elements, synopses=None, title=""):
     """
     Genera contenuto TOON completo formattato per BIBBIA.
+    Restituisce un dizionario con 'dna' e 'sinossi'.
     """
-    sections = []
+    dna_sections = []
+    sinossi_sections = []
     
     if title:
-        sections.append(f"# BIBBIA - {title}")
-        sections.append("")
+        dna_sections.append(f"# BIBBIA - {title}")
+        dna_sections.append("")
     
-    # PERSONAGGI
+    # PERSONAGGI -> DNA
     if characters:
-        sections.append("@ PERSONAGGI")
+        dna_sections.append("@ PERSONAGGI")
         for char in characters:
             name = char.get('name', 'Unknown')
             slug = name.split()[0].lower() # Simple slug: first name lowercase
             role = char.get('role', 'ruolo sconosciuto')
-            # Format: + slug: Full Name
-            sections.append(f"  + {slug}: {name}")
-            sections.append(f"    | ruol: {role}")
-            # Context/Description if available? usually in 'context' or merged desc
+            dna_sections.append(f"  + {slug}: {name}")
+            dna_sections.append(f"    | ruol: {role}")
             if 'context' in char:
-                 sections.append(f"    | desc: {char['context'][:100]}")
-        sections.append("")
+                 dna_sections.append(f"    | desc: {char['context'][:100]}")
+        dna_sections.append("")
     
-    # World elements per categoria
+    # World elements -> DNA
     if world_elements:
         categories = {}
         for elem in world_elements:
@@ -188,12 +188,6 @@ def to_bibbia_format(characters, world_elements, synopses=None, title=""):
             if cat not in categories:
                 categories[cat] = []
             categories[cat].append(elem)
-        
-        # MAPPING
-        # Place -> @ LUOGHI
-        # System/Group -> @ SOCIETA
-        # Object/Myth -> @ OGGETTI
-        # Unknown -> @ ALTRO
         
         cat_map = {
             'Place': 'LUOGHI',
@@ -207,7 +201,6 @@ def to_bibbia_format(characters, world_elements, synopses=None, title=""):
             'Unknown': 'ALTRO'
         }
         
-        # Group by MAPPED categories
         mapped_content = {}
         for cat, items in categories.items():
             mapped_cat = cat_map.get(cat, 'ALTRO')
@@ -216,26 +209,40 @@ def to_bibbia_format(characters, world_elements, synopses=None, title=""):
             mapped_content[mapped_cat].extend(items)
 
         for section, items in mapped_content.items():
-            sections.append(f"@ {section}")
+            dna_sections.append(f"@ {section}")
             for item in items:
                 name = item.get('name', 'Unknown')
                 slug = name.replace(" ", "_").lower()[:20]
                 context = item.get('context', item.get('raw_type', ''))
                 
-                sections.append(f"  + {slug}: {name}")
-                sections.append(f"    | desc: {context}")
-            sections.append("")
+                dna_sections.append(f"  + {slug}: {name}")
+                dna_sections.append(f"    | desc: {context}")
+            dna_sections.append("")
     
-    # Synopses
+    # Synopses -> CRONACA (separata)
     if synopses:
-        sections.append("@ CRONACA")
+        sinossi_sections.append("# SINOSSI MASTER - Riassunti Capitoli")
+        sinossi_sections.append("# Questo file cresce con il libro. Ogni capitolo completato va aggiunto qui.")
+        sinossi_sections.append("# Formato: @ cap_N seguito da riassunto denso in TOON")
+        sinossi_sections.append("")
+        
+        # Formato: @ cap_N seguito da riassunto denso
         for syn in synopses:
             post_num = syn.get('post_number', 0)
             syn_title = syn.get('title', '')
             summary = syn.get('summary', '')
-            sections.append(f"  + post_{post_num}: {syn_title}")
+            
+            sinossi_sections.append(f"@ cap_{post_num}")
+            if syn_title:
+                sinossi_sections.append(f"  + titolo: {syn_title}")
+            
             if summary:
-                sections.append(f"    | riassunto: {summary}")
-        sections.append("")
+                for line in summary.strip().split('\n'):
+                    if line.strip():
+                        sinossi_sections.append(f"  + {line.strip()}")
+            sinossi_sections.append("")
     
-    return '\n'.join(sections)
+    return {
+        "dna": '\n'.join(dna_sections),
+        "sinossi": '\n'.join(sinossi_sections)
+    }

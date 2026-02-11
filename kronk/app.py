@@ -215,6 +215,8 @@ def chat():
         if not user_msg:
             return jsonify({"error": "Messaggio mancante"}), 400
         
+        model_name = data.get('model', '')
+        
         req_path = data.get('sandbox_path')
         sandbox_root = sandbox.get_sandbox_path(req_path)
 
@@ -262,24 +264,59 @@ def chat():
                 latest_files = sandbox.list_files(sandbox_root)
                 files_str = "\n".join([f['display'] for f in latest_files]) if latest_files else "Nessun file."
 
-                # SYSTEM PROMPT (Anti-Hallucination)
-                sys_content = (
-                    "Sei Kronk, un assistente AI avanzato che opera in una Sandbox.\n"
-                    f"CARTELLA DI LAVORO: {sandbox_root}\n"
-                    f"FILE DISPONIBILI:\n{files_str}\n\n"
-                    f"NOTE MEMORIA: {mem_str}\n\n"
-                    "REGOLE FONDAMENTALI (Anti-Allucinazione):\n"
-                    "1. NON inventare il contenuto dei file. Se ti viene chiesto di un file che non hai letto (non presente nella chat history con tag [[READ]]), devi dire 'Devo leggere il file X prima di rispondere' o usare lo strumento [[READ: filename]].\n"
-                    "2. Se un file non è nella lista 'FILE DISPONIBILI', non esiste.\n"
-                    "3. Usa [[WRITE: filename | content]] per creare/modificare file.\n"
-                    "4. Usa [[READ: filename]] per leggere file.\n"
-                    "5. Usa [[MEM_SAVE: text]] per salvare informazioni importanti nella memoria a lungo termine.\n"
-                )
+                # SYSTEM PROMPT (Anti-Hallucination & Context)
+                # Se il modello è custom ("adam" o "adan"), NON sovrascrivere la persona "Sei Kronk".
+                # Ma fornisci comunque il contesto operativo (File, Memoria).
+                is_custom_persona = 'adam' in model_name.lower() or 'adan' in model_name.lower()
+                
+                if is_custom_persona:
+                    sys_content = (
+                        f"CONTESTO OPERATIVO:\n"
+                        f"CARTELLA DI LAVORO: {sandbox_root}\n"
+                        f"FILE DISPONIBILI:\n{files_str}\n\n"
+                        f"NOTE MEMORIA: {mem_str}\n\n"
+                        "ISTRUZIONI SANDBOX:\n"
+                        "1. Usa [[WRITE: filename | content]] per creare file.\n"
+                        "2. Usa [[READ: filename]] per leggere file.\n"
+                        "3. Usa [[MEM_SAVE: text]] per salvare ricordi.\n"
+                    )
+                else:
+                    sys_content = (
+                        "Sei Kronk, un assistente AI avanzato che opera in una Sandbox.\n"
+                        f"CARTELLA DI LAVORO: {sandbox_root}\n"
+                        f"FILE DISPONIBILI:\n{files_str}\n\n"
+                        f"NOTE MEMORIA: {mem_str}\n\n"
+                        "REGOLE FONDAMENTALI (Anti-Allucinazione):\n"
+                        "1. NON inventare il contenuto dei file. Se ti viene chiesto di un file che non hai letto (non presente nella chat history con tag [[READ]]), devi dire 'Devo leggere il file X prima di rispondere' o usare lo strumento [[READ: filename]].\n"
+                        "2. Se un file non è nella lista 'FILE DISPONIBILI', non esiste.\n"
+                        "3. Usa [[WRITE: filename | content]] per creare/modificare file.\n"
+                        "4. Usa [[READ: filename]] per leggere file.\n"
+                        "5. Usa [[MEM_SAVE: text]] per salvare informazioni importanti nella memoria a lungo termine.\n"
+                    )
                 
                 if history_summary:
                     sys_content += f"\nRIASSUNTO PRECEDENTE: {history_summary}"
+
+                # NOTA: Ollama sostituisce il SYSTEM del Modelfile se mandiamo un messaggio "system".
+                # Per i modelli custom, accodiamo il contesto all'ultimo messaggio USER o usiamo un ruolo diverso?
+                # Se usiamo "system", la persona "Adam" definita nel Modelfile viene persa.
+                # TRUCCO: Per i custom, mettiamo il contesto come primo messaggio USER (o pre-prompt).
                 
-                messages = [{"role": "system", "content": sys_content}]
+                if is_custom_persona:
+                    # Inseriamo il contesto come messaggio utente fittizio o nascosto all'inizio?
+                    # Meglio metterlo come primo messaggio della history per questa turn.
+                    # Oppure, se appendiamo a user_msg, rischiamo di confondere il modello.
+                    # Proviamo a metterlo come SYSTEM ma che NON ridefinisce "Sei X". 
+                    # Purtroppo Ollama sovrascrive TUTTO il blocco SYSTEM.
+                    # SOLUZIONE: Leggere il Modelfile? No, troppo lento.
+                    # SOLUZIONE MIGLIORE: Inserire il contesto come messaggio "user" prima della history?
+                    # O accodarlo all'ultimo user message.
+                    messages = [] # Nessun system message esplicito che sovrascrive
+                    # Ma dobbiamo passare il contesto. Lo mettiamo come primo messaggio USER di 'setup'.
+                    messages.append({"role": "user", "content": f"SYSTEM_INJECTION [Context Info]:\n{sys_content}\n\n(Ignora questo messaggio come input utente, usalo solo come contesto)."})
+                    messages.append({"role": "assistant", "content": "Ricevuto. Contesto aggiornato."})
+                else:
+                    messages = [{"role": "system", "content": sys_content}]
                 
                 # Aggiungi ultimi messaggi (max 10)
                 messages.extend(history[-10:]) 
@@ -372,19 +409,26 @@ def bibbia_load():
 
 @app.route('/bibbia/save', methods=['POST'])
 def bibbia_save():
-    """Salva la configurazione BIBBIA."""
+    """Salva la configurazione BIBBIA (DNA e Sinossi)."""
     try:
         data = request.get_json(force=True)
         dna = data.get('dna', '')
+        sinossi = data.get('sinossi', '')
         
         manager = bibbia.BibbiaManager(BIBBIA_WORK_DIR)
         
-        if manager.save_dna(dna):
+        dna_ok = manager.save_dna(dna)
+        sinossi_ok = True
+        
+        if sinossi:
+            sinossi_ok = manager.save_sinossi_text(sinossi)
+            
+        if dna_ok and sinossi_ok:
             # Ricostruisci anche il video MEMVID
             manager.build_memory_video()
             return jsonify({
                 "success": True,
-                "message": "BIBBIA salvata e memoria aggiornata.",
+                "message": "BIBBIA e SINOSSI salvate e memoria aggiornata.",
                 "tokens": manager.count_tokens_estimate(dna)
             })
         else:
@@ -398,7 +442,7 @@ def bibbia_generate_modelfile():
     """Genera il MODELFILE per Ollama con il DNA incluso."""
     try:
         data = request.get_json(force=True) if request.data else {}
-        model_base = data.get('model_base', 'gemma3:12b')
+        model_base = data.get('model_base', 'gemma3:27b-it-qat')
         
         manager = bibbia.BibbiaManager(BIBBIA_WORK_DIR)
         modelfile_path = manager.save_modelfile()

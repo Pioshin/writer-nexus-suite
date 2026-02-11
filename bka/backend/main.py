@@ -287,23 +287,18 @@ async def export_toon(data: dict):
     """Export analysis data to TOON format."""
     characters = data.get("characters", [])
     world = data.get("world", [])
+    synopses = data.get("synopses", [])
     title = data.get("title", "Untitled")
     
-    output_lines = [f"# BIBBIA: {title}\n"]
-    
-    if characters:
-        output_lines.append(toon.characters_to_toon(characters))
-        output_lines.append("")
-    
-    if world:
-        output_lines.append(toon.world_to_toon(world))
-    
-    toon_content = "\n".join(output_lines)
+    bibbia_data = toon.to_bibbia_format(characters, world, synopses, title)
+    # For a single file export, we combine them
+    toon_content = bibbia_data["dna"] + "\n\n" + (bibbia_data["sinossi"] if synopses else "")
     
     return JSONResponse(content={
         "toon": toon_content,
         "characters_count": len(characters),
-        "world_count": len(world)
+        "world_count": len(world),
+        "synopses_count": len(synopses)
     })
 
 @app.post("/api/bibbia/send")
@@ -321,11 +316,13 @@ async def send_to_bibbia(data: dict):
     sandbox_url = data.get("sandbox_url", "http://127.0.0.1:5000")
     
     # Genera contenuto BIBBIA
-    bibbia_content = toon.to_bibbia_format(characters, world, synopses, title)
+    bibbia_data = toon.to_bibbia_format(characters, world, synopses, title)
+    dna_content = bibbia_data["dna"]
+    sinossi_content = bibbia_data["sinossi"]
     
     # Prepara per merge con BIBBIA esistente (se presente)
     try:
-        # Prima carica BIBBIA esistente
+        # Carica BIBBIA esistente per preservare eventuali note manuali
         load_resp = http_requests.get(f"{sandbox_url}/bibbia/load", timeout=5)
         existing_dna = ""
         if load_resp.ok:
@@ -333,16 +330,19 @@ async def send_to_bibbia(data: dict):
             if existing_data.get("success"):
                 existing_dna = existing_data.get("dna", "")
         
-        # Se esiste già un contenuto, appendi il nuovo
+        # Merge DNA: appendi se esiste già
         if existing_dna.strip():
-            merged_content = existing_dna + "\n\n# === IMPORTATO DA BOOKANALYZER ===\n" + bibbia_content
+            merged_dna = existing_dna + "\n\n# === IMPORTATO DA BOOKANALYZER ===\n" + dna_content
         else:
-            merged_content = bibbia_content
+            merged_dna = dna_content
         
-        # Invia a BIBBIA
+        # Invia a BIBBIA con entrambi i campi
         save_resp = http_requests.post(
             f"{sandbox_url}/bibbia/save",
-            json={"dna": merged_content},
+            json={
+                "dna": merged_dna,
+                "sinossi": sinossi_content
+            },
             timeout=30
         )
         

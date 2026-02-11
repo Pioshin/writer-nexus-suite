@@ -81,7 +81,7 @@ class BibbiaManager:
   + [regola_2]: [descrizione]
 """
 
-    def generate_modelfile_content(self, model_base="gemma3:12b"):
+    def generate_modelfile_content(self, model_base="gemma3:27b-it-qat"):
         """Genera il contenuto del MODELFILE per Ollama con il DNA."""
         dna = self.load_dna()
         
@@ -92,6 +92,9 @@ Sei "Adam", un assistente di scrittura creativa specializzato nel romanzo "Galac
 
 === BIBBIA DEL MONDO ===
 {dna}
+
+=== CRONACA (RIASSUNTI CAPITOLI) ===
+{self.get_sinossi_text()}
 
 === ISTRUZIONI ===
 - Mantieni coerenza con i personaggi e le loro caratteristiche
@@ -180,6 +183,16 @@ PARAMETER num_ctx 32768
                 return f.read()
         except:
             return ""
+
+    def save_sinossi_text(self, content):
+        """Salva l'intero contenuto della sinossi (es. da export BKA)."""
+        try:
+            with open(self.sinossi_file, 'w', encoding='utf-8') as f:
+                f.write(content)
+            return True
+        except Exception as e:
+            logging.error(f"Errore salvataggio sinossi full: {e}")
+            return False
 
     # ==================== LIVELLO 3: FRONTE ATTIVO ====================
     

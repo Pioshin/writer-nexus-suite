@@ -2,27 +2,146 @@
   "metadata": [
     {
       "id": 0,
-      "text": "DNA DEL MONDO:\n@ MONDO\n  + galassia: Ephemera, 46.000 anni luce dalla Via Lattea\n  + pianeta_principale: Terrax, rocce cantanti, fiumi al contrario\n  + governo: Triumvirato (Hal Seldon, Asimov Kress, Ripley Foster)\n  + tecnologia: motori iperluce, tunnel temporale, Mach5000\n  + tono: fusione rigore Asimov + demenziale Adams\n\n@ RAZZE\n  + umanidi: abitanti di Terrax, bipedi vari colori\n  + spaziali: esuli da Terrax, pelle grigia, logici, viaggiatori tempo\n  + [future]: altre 3 razze da svelare nei volumi 2-3\n\n@ PROTAGONISTI (4 attuali + 2 futuri)\n  + hector: Hector \"No-one\" Starborn, tecnico help desk, antieroe\n    | razza: umanide\n    | tratti: sarcastico, fame cronica, incompetente sociale\n    | arco: da tecnico a ISCIS (Inviato Speciale)\n  + sheila: Sheila Evening/Mornin, pianeta Malaffare\n    | razza: umanide (Malaffare)\n    | tratti: eroina, emotiva, empatica\n    | ruolo: cardine storia d'amore con Hector\n  + kenla: Kenla Quilah, comandante Squadra 3G\n    | razza: spaziale\n    | tratti: veterana, pragmatic",
+      "text": "DNA DEL MONDO:\n# === IMPORTATO DA BOOKANALYZER ===\n# BIBBIA - Galactic Powder Ephemera\n\n@ PERSONAGGI\n  + asimov: Asimov Kress\n    | ruol: Dottor Asimov Kress,capo politico, triumviro\n  + jules: Jules Darwin\n    | ruol: Scienziato pi\u00f9 influente della galassia, arrestato per necessit\u00e0\n  + generale: Generale Harlan\n    | ruol: Generale Spaziale e Leader di Aleph\n  + hal: Hal Seldon\n    | ruol: Ammiraglio del Coordinamento Interplanetario Supremo, triumviro, capo militare\n  + hector: Hector Starborn\n    | ruol: Tecnico informatico dell'help desk, Tecnico IT, protagonista, anti eroe, socialmente impacciato\n  + joyl: Joyl Cond\u2011Horr\n    | ruol: Pilota tattico e Membro della squadra 3G, cinico e muscoloso\n  + kenla: Kenla Quilah\n    | ruol: Veterana e Capitano della squadra 3G, capelli corti corvini, fisico perfetto\n  + nikola: Nikola Galilei\n    | ruol: Scienziato e Inventore, folle e geniale, primo mentore di hector\n  + ripley: Ripley Foster\n    | ruol: Leader politico (onorevolissima), Ambasciatrice di Terrax, di",
       "frame": 0,
-      "length": 1024
+      "length": 1023
     },
     {
       "id": 1,
-      "text": "| tratti: veterana, pragmatica, spara laser attraverso aghi\n  + darwin: Dr. Jules Darwin, scienziato TERRA, barba bianca\n    | razza: spaziale\n    | tratti: razionale, arrestato, conosce segreto stelle\n  + [futuro_1]: da definire nei prossimi volumi\n  + [futuro_2]: da definire nei prossimi volumi\n\n@ PERSONAGGI_PRINCIPALI\n  + joyl: Joyl Cond-Horr, pilota tattico 3G\n    | razza: spaziale\n    | tratti: muscoli, malumore, cinico\n  + souvenir: robot 3G, ossessionato reality show\n    | razza: robot\n    | tratti: pedante, balbuziente, logico irritante\n  + galilei: Prof. Nikola Galilei, TECO, ossessionato pendoli\n    | razza: umanide\n    | tratti: geniale, distratto, macchina caff\u00e8 temporale\n\n@ REGOLE_NARRATIVE\n  + burocrazia: controlli assurdi, moduli infiniti\n  + paradossi: viaggi tempo, eco nave, inversione CPT\n  + umorismo: digressioni, battute meta, riferimenti pop anni '80",
+      "text": "a), Ambasciatrice di Terrax, di nobile famiglia\n  + sheila: Sheila Evening\n    | ruol: Eroina coprotagonista con hector (romance) e operatrice di marketing sessuale\n\n@ LUOGHI\n  + terrax: Terrax\n    | desc: Pianeta blu\u2011verde situato a 46.000 anni luce dalla Via Lattea, abitato dagli Umanidi................\n  + galassia_ephemera: Galassia Ephemera\n    | desc: Estensione cosmica pi\u00f9 vasta e complessa di quanto gli Umanidi immaginino, contenente molte altre ci...\n  + via_lattea: Via Lattea\n    | desc: Galassia di riferimento per la distanza di Terrax, menzionata come punto di confronto................\n  + cabina_237: Cabina 237\n    | desc: Stanza di bordo dove Hector rimane alla soglia, ambiente di inserimento temporaneo per missioni segr...\n  + celestial_voyager: Celestial Voyager\n    | desc: Nave stellare su cui Sheila lavora, centro di attivit\u00e0 commerciali e sociali................",
       "frame": 1,
-      "length": 883
+      "length": 893
     },
     {
       "id": 2,
-      "text": "CRONACA CAPITOLI:\n# SINOSSI MASTER - Riassunti Capitoli\n# Questo file cresce con il libro. Ogni capitolo completato va aggiunto qui.\n# Formato: @ cap_N seguito da riassunto denso in TOON",
+      "text": "rciali e sociali................\n  + mercato_delle_spezie: Mercato delle spezie di Aldebaran\n    | desc: Mercato virtuale di spezie su Aldebaran, indicato da una colonna olografica................\n\n@ OGGETTI\n  + abito_di_tessuto_can: Abito di tessuto cangiante\n    | desc: Abbigliamento di lusso con tessuto che si adatta al corpo, tecnologia di auto-adesione................\n  + tessuto_autostrintan: Tessuto autostrintante\n    | desc: Materiale intelligente che si adatta al corpo, rappresenta tecnologia avanzata dei ricchi..............\n\n@ SOCIETA\n  + economia: Economia\n    | desc: Sistema sociale e finanziario che gli Umanidi considerano vitale................\n  + triumvirato: Triumvirato\n    | desc: Entit\u00e0 governativa o corporativa che controlla la missione di Hector, agenzia di intelligence con po...\n  + teletrasporto_di_ins: Teletrasporto di inserimento\n    | desc: Mezzo di trasporto non convenzionale usato per bypassare controlli di sicurezza, parte del protocoll...",
       "frame": 2,
-      "length": 186
+      "length": 983
+    },
+    {
+      "id": 3,
+      "text": "icurezza, parte del protocoll...\n  + ologrammi_indicazion: Ologrammi indicazionali\n    | desc: Schermi olografici che mostrano destinazioni esotiche, parte del sistema di navigazione e pubblicit\u00e0...\n  + umanidi: Umanidi\n    | desc: Popolazione bipede di vari colori e dimensioni, con cultura focalizzata su attivit\u00e0 quotidiane e una...\n  + spaziali: Spaziali\n    | desc: Esuli o exili che gli Umanidi chiamano 'Spaziali', rappresentano una prospettiva diversa e spesso ma...\n  + huazzamericangirls: HUAZZAMERICANGIRLS\n    | desc: Servizio di outsourcing specializzato in marketing sessuale per adulti, rappresenta la cultura del c...\n  + malaffare: Malaffare\n    | desc: Pianeta caratterizzato da attivit\u00e0 illecite, cultura del crimine e doppie vite................\n  + sistema_di_lavoro_\"d: Sistema di lavoro \"dormire per terra in ufficio\"\n    | desc: Contratto di outsourcing che prevede il sonno sul posto di lavoro, riflette norme di lavoro e gerarc...",
+      "frame": 3,
+      "length": 956
+    },
+    {
+      "id": 4,
+      "text": "ette norme di lavoro e gerarc...\n  + cultura_del_marketin: Cultura del marketing sessuale\n    | desc: Industria di promozione erotica per adulti, dominante nella societ\u00e0 del pianeta................\n  + mistero_particolarme: Mistero particolarmente grande\n    | desc: Evento misterioso che ha iniziato a emergere nella regione, segnalato come un grande enigma............",
+      "frame": 4,
+      "length": 370
+    },
+    {
+      "id": 5,
+      "text": "CRONACA CAPITOLI:\n# SINOSSI MASTER - Riassunti Capitoli\n# Questo file cresce con il libro. Ogni capitolo completato va aggiunto qui.\n# Formato: @ cap_N seguito da riassunto denso in TOON\n\n@ cap_1\n  + titolo: Terrax: l'ignoranza cosmica degli Umanidi\n  + In un remoto angolo della Galassia Ephemera, sul pianeta blu\u2011verde Terrax, le creature bipedi chiamate Umanidi si preoccupano di questioni quotidiane come il tempo, l\u2019economia e le serie TV interrotte, ignorando il vasto universo che li circonda. Il loro mondo \u00e8 limitato dalla prospettiva di una piccola civilt\u00e0, mentre al di l\u00e0 di Terrax esistono altre forme di vita, tra cui gli Spaziali, che portano a svelare un grande mistero. La narrazione si svolge a 46.000 anni luce dalla Via Lattea, dove le attivit\u00e0 degli Umanidi si intrecciano con le prime tracce di un enigma cosmico.",
+      "frame": 5,
+      "length": 835
+    },
+    {
+      "id": 6,
+      "text": "ime tracce di un enigma cosmico.\n\n@ cap_2\n  + titolo: Il Tiumvirato e la Pizza Fredda\n  + Nel cuore della Galassia Ephemera, il Tiumvirato \u2013 composto dall\u2019Ammiraglio Hal Seldon, dal dottor Asimov Kress e dall\u2019onorevole Ripley Foster \u2013 tenta di risolvere il doppio mistero: perch\u00e9 la pizza a domicilio rimane sempre fredda e perch\u00e9 le stelle scompaiono. Gli Umanidi di Terrax, ormai pionieri dello spazio profondo, e i loro fratelli spaziali, che hanno lasciato il pianeta in cerca di nuove frontiere, si confrontano con questi enigmi cosmici mentre la civilt\u00e0 interplanetaria continua a prosperare. Il racconto si svolge tra le nebbie di gas, i campi di asteroidi e le astronavi di alta tecnologia, dove la ricerca scientifica e la quotidianit\u00e0 convivono in un\u2019ambientazione futuristica e intrisa di ironia.\n\n@ cap_3\n  + titolo: Il Triumvirato e il Guasto\n  + Nel lussuoso ufficio del Coordinamento Interplanetario Supremo a New Xanadu, il Triumvirato composto da Ammiraglio Hal Seldon, Ripley Foster e Dr.",
+      "frame": 6,
+      "length": 1006
+    },
+    {
+      "id": 7,
+      "text": "Hal Seldon, Ripley Foster e Dr. Asimov Kress discute le minacce degli Spaziali quando un improvviso guasto elettronico svela un errore di sistema. L\u2019evento porta all\u2019improvvisa convocazione di Hector Starborn, un tecnico informatico dell\u2019help desk, che si ritrova al centro di una crisi interplanetaria. In un lampo, il destino della Galassia Ephemera passa dalle mani dei potenti a quelle di un improbabile eroe.\n\n@ cap_4\n  + titolo: Il Mistero delle Stelle Scomparsa\n  + Sul luminoso pianeta Aleph, dove i cieli cambiano colore con l\u2019umore dei Sgnaf\u00fcrz e le creature bioluminescenti danzano al tramonto, il Generale Harlan si confronta con l\u2019inexplicabile scomparsa delle stelle e decide di mandare i Cercatori in missione. Nel frattempo, il logico Dr. Jules Darwin, membro della TERRA, viene arrestato per la sua partecipazione al viaggio, mentre l\u2019innocente tecnico informatico Hector \"no-one\" Starborn, ignaro del suo ruolo, scatta una serie di eventi galattici.",
+      "frame": 7,
+      "length": 967
+    },
+    {
+      "id": 8,
+      "text": "a una serie di eventi galattici. L\u2019ambientazione attraversa la stravagante Aleph, i laboratori temporali di TERRA e un remoto pianeta con rocce cantanti, fiumi all\u2019indietro e salmoni avanti.\n\n@ cap_5\n  + titolo: Burocrazia Interplanetaria e la Crisi Stellare\n  + Hector Starborn affronta una serie di controlli assurdi per raggiungere l\u2019Interplanetary Coordination su Terrax, dove scopre che i lunghi monologhi di Hal Seldon hanno sovraccaricato il sistema, provocando la scomparsa delle stelle. Riuscendo a ripristinare il server, Hector provoca un confronto tra i triumviri \u2013 Hal Seldon, Asimov Kress e Ripley Foster \u2013 che mette in luce la fragilit\u00e0 della loro autorit\u00e0. L\u2019ambientazione \u00e8 un pianeta dove la fisica \u00e8 bizzarra, con un edificio galleggiante che sorvola la citt\u00e0 spirituale di Terrax.\n\n@ cap_6\n  + titolo: Prigione di Onda Oscura e Squadra 3G\n  + Darwin \u00e8 stato condannato a una prigione ai bordi di un buco nero, dove ogni minuto si trasforma in un\u2019eternit\u00e0, mentre la Squadra 3G\u2014composta da Kenla Quilah, J",
+      "frame": 8,
+      "length": 1024
+    },
+    {
+      "id": 9,
+      "text": "a 3G\u2014composta da Kenla Quilah, Joyl Cond\u2011Horr e il robot Souvenir\u2014si prepara a un\u2019operazione di ricerca di una stella scomparsa sotto la rigidit\u00e0 di un governo tecnocratico. La missione si svolge in un quartier generale decadente, custode di un trofeo di guerra, mentre il Generale Harlan coordina la strategia. In questo scenario di dilatazione temporale e protocolli inflexibili, Darwin spera di essere salvato da un destino oscuro.\n\n@ cap_7\n  + titolo: Ricerca nella Scomparsa di Cygnus X-1\n  + Nel tentativo di scoprire la misteriosa scomparsa della stella Cygnus X-1, l\u2019equipaggio della Mach5000 \u2013 guidato da Kenla, Joy e Souv \u2013 parte dalla base di Aleph verso l\u2019orbita di Terrax, mentre il Generale supervisiona la missione. La nave, dotata di motore a curvatura quantistica e sistemi di invisibilit\u00e0, si lancia verso l\u2019ignoto, lasciando dietro di s\u00e9 solo un alone di energia.",
+      "frame": 9,
+      "length": 882
+    },
+    {
+      "id": 10,
+      "text": "di s\u00e9 solo un alone di energia. Nel frattempo, Hector su Terrax lottava per recuperare l\u2019equipaggiamento e pianificare la prossima fase della missione, mentre l\u2019Ufficio Postale Galattico osserva la situazione con apprensione.\n\n@ cap_8\n  + titolo: Hover\u2011Scooter e il Paradiso Burocratico\n  + Hector, affaticato dalla grigliata ma determinato a risolvere la scomparsa delle stelle, si avventura verso il laboratorio del professor Nikola Galilei sul pianeta Terrax, dove paesaggi surreali si mescolano a controlli di sicurezza e a una burocrazia ironicamente severa. Il viaggio, condotto in un hover\u2011scooter a pagamento karmico, lo porta a scendere ripetutamente per verifiche di karma, aura e documenti di viaggio, mentre la straordinaria natura di Terrax lo incanta. La scena si svolge su un pianeta dove fiumi scorrono al contrario e montagne cantano, creando un contrasto tra meraviglia e frustrazione burocratica.",
+      "frame": 10,
+      "length": 915
+    },
+    {
+      "id": 11,
+      "text": "glia e frustrazione burocratica.\n\n@ cap_9\n  + titolo: Il TECO e il Tempo Sotto\u2011Sopra\n  + Hector, in viaggio verso il laboratorio di ricerca di Terrax, affronta una serie di controlli di sicurezza futuristici e un ascensore ultraveloce che lo porta in un luogo dove la scienza si intreccia con il tempo stesso. In un paesaggio di nuvole bizzarre, droni e torri di cristallo, l\u2019eroe si immerge in corridoi psichedelici per raggiungere una porta di ghisa protetta da un codice mutevole. Il laboratorio, nascosto sia sotto il cielo che sotto l\u2019epoca, promette di svelare segreti temporali che sfidano la realt\u00e0.\n\n@ cap_10\n  + titolo: Il laboratorio dei pendoli\n  + Nel laboratorio caotico di un futuro alternativo, Hector esplora un ambiente vibrante dove robot e umanidi collaborano tra esperimenti rivoluzionari. Il protagonista, il professor Nikola Galilei, \u00e8 ossessionato dai pendoli, gestendo una sezione dedicata a dispositivi che sfidano le leggi della fisica, e dimostra la sua genialit\u00e0 con invenzioni come il Microscop",
+      "frame": 11,
+      "length": 1024
+    },
+    {
+      "id": 12,
+      "text": "con invenzioni come il Microscopio a Risonanza e la Macchina da Caff\u00e8 Temporale. L'ambientazione \u00e8 un laboratorio high\u2011tech, pulsante di energia, dove la scienza si fonde con l'irrazionale.\n\n@ cap_11\n  + titolo: La Crociera Stellare di Hector\n  + In un laboratorio caotico, Hector si trova a confrontarsi con il Professor Galilei e il suo strano robot pendolo, prima di essere coinvolto in un incontro improvviso con un enorme megasauro corazzato. Durante la confusione, il professore rivela un piano audace: una crociera spaziale, la Celestial Voyager, che potrebbe portarli alla scomparsa delle stelle. Con l\u2019aiuto del Triumvirato e del misterioso dottor Darwin, Hector si prepara a intraprendere un viaggio interstellare verso Cygnus X\u20111 per scoprire il segreto delle stelle scomparse.\n\n@ cap_12\n  + titolo: L'Eco della Mach5000\n  + Souv, il robot pilota, deve gestire l'allarme di una minaccia sconosciuta mentre la Mach 5000 si allontana da Aleph, con il suono assordante di un \u2018rutto\u2019 che rompe la calma.",
+      "frame": 12,
+      "length": 1010
+    },
+    {
+      "id": 13,
+      "text": "i un \u2018rutto\u2019 che rompe la calma. La nave si avvicina alla Nebulosa Vorticosa di Aetherion, dove i luminosi Anelli di Thragmork creano distorsioni gravitazionali, costringendo Souv a lanciare una sonda di ispezione spirale per indagare il pericolo. L'ambientazione \u00e8 un paesaggio cosmico vibrante, dove il silenzio dello spazio si stringe come una morsa invisibile intorno alla nave.\n\n@ cap_13\n  + titolo: Gemello Spettrale: L\u2019Eco di una Nave\n  + Mentre la Mach5000 navigava tra le stelle, l\u2019IA Souvenir scopre un'entit\u00e0 identica a s\u00e9 stessa, un gemello spettrale che replica perfettamente la firma di telemetria della nave, creando un paradosso causale. In risposta, Souvenir attiva la clausola \u2018Caduta dell\u2019Angelo\u2019, risvegliando il personale di comando per affrontare la minaccia. L\u2019evento si svolge a bordo della Mach5000, con l'equipaggio in stato criogenico e la nave immersa in un silenzio siderale che interrompe la sua routine.",
+      "frame": 13,
+      "length": 934
+    },
+    {
+      "id": 14,
+      "text": "e che interrompe la sua routine.\n\n@ cap_14\n  + titolo: Caff\u00e8 Temporale e Viaggio Inaspettato\n  + Hector Starborn, affamato e confuso, tenta di accendere la Macchina del Caff\u00e8 Temporale del Professor Galilei, ma un errore di codice lo trasporta in un ufficio psichedelico chiamato HUAZZAMERICANGIRLS. L\u00ec, tra poster olografici e un logo che urla \u201cSe non lo sai, FALLO!\u201d, Hector deve decidere come sopravvivere a questo salto temporale e alimentare la sua fame. L\u2019azione si svolge prima nel laboratorio di Galilei, poi in un ambiente di lavoro surreale e colorato, dove la tecnologia e la confusione si fondono in un'avventura improvvisata.\n\n@ cap_15\n  + titolo: Scongelamento a microonde: l\u2019eco di una nave sospesa\n  + Kenla Quilah e Joyl Cond\u2011Horr emergono dalla loro capsula criogenica Mach5000 grazie a un \u2018scongelamento a microonde\u2019, affrontando un risveglio doloroso e disorientante.",
+      "frame": 14,
+      "length": 887
+    },
+    {
+      "id": 15,
+      "text": "veglio doloroso e disorientante. Incontro con l\u2019intelligente Souvenir, che li avverte di un\u2019anomalia spaziotemporale, li porta a confrontarsi con la Mach5000 stessa sospesa nel vuoto, simbolo di un\u2019energia impossibile. L\u2019azione si svolge a bordo della nave, nella silenziosa atmosfera di una capsula di criogenia e di un\u2019eco cosmica che minaccia di travolgere la missione.\n\n@ cap_16\n  + titolo: Il Caff\u00e8 del Bug\n  + Hector Starborn, a bordo della Celestial Voyager, si ritrova bloccato da un errore di check\u2011in che lo porta a confrontarsi con un droide assistente impeccabile. Mentre la macchina lo informa che il suo passaggio \u00e8 gi\u00e0 stato completato, Hector segue una freccia olografica che lo conduce attraverso corridoi tematici, dal Giardino delle Nebulose Sussurranti al Ponte della Noia Dorata, per raggiungere la sua cabina 237. L\u2019avventura, ricca di dettagli futuristici e ironici, mette in luce la frustrazione di un uomo che lotta con sistemi burocratici di un viaggio interstellare.",
+      "frame": 15,
+      "length": 993
+    },
+    {
+      "id": 16,
+      "text": "ici di un viaggio interstellare.\n\n@ cap_17\n  + titolo: Specchi, antimateria e portelloune\n  + Nel silenzio della plancia della Mach5000, la comandante Kenla Quilah, la sua copilota Joyl Cond\u2011Horr e l\u2019IA Souvenir affrontano un\u2019anomalia cosmica: una versione speculare e antimateria della loro nave proveniente dal futuro. Rilevano un unico segnale vitale e decisero di investigare, ma l\u2019IA rifiut\u00f2 di aprire il portelloune, sostenendo che non fosse installato. L\u2019azione si svolge a bordo della Mach5000, un veicolo spaziale di alta tecnologia.\n\n@ cap_18\n  + titolo: Noone e Sheila nella Nave Celestiale\n  + Hector, ora agente segreto in incarna \u201cNoone\u201d, entra nella lussuosa Cabina 237 del Celestial Voyager per una missione di alto livello. Mentre esplora il Ponte Ristorazione, incrocia Sheila Evening, una servente a doppia vita, e cerca di gestire la conversazione con la sua nuova identit\u00e0.",
+      "frame": 16,
+      "length": 894
+    },
+    {
+      "id": 17,
+      "text": "zione con la sua nuova identit\u00e0. La scena si svolge in un ambiente di opulenza futuristica, dove il profumo di silicio e le offerte gastronomiche stellari creano un contrasto tra il potere e la sopravvivenza quotidiana.\n\n@ cap_19\n  + titolo: Il Paradosso del Fantasma\n  + Kenla e Joyl, due soldati d'\u00e9lite, si trovano su una plancia di nave in un teatro dell'assurdo dove i loro avversari sono spettatori spettrali lenti come una vecchia registrazione. L'unica presenza vivace \u00e8 un'entit\u00e0 indefinita che li osserva, mentre l'anziano Darwin li avverte di fuggire prima che la Mach5000 fantasma sparisca. Dopo la fuga, i due si confrontano con l'enigma della figura e decidono di evitare un altro sonno criogenico, mentre Souvenir riprende il suo intrattenimento personale.\n\n@ cap_20\n  + titolo: Singolarit\u00e0 Penale Omega\n  + Nell\u2019ombra oscura della Singolarit\u00e0 Penale Omega, un buco cosmico che distorce la realt\u00e0, i Pelandroidi e i Cavalieri del Pulito vigillano in corridoi di pietra dimenticata mentre il professor Darwin e",
+      "frame": 17,
+      "length": 1024
+    },
+    {
+      "id": 18,
+      "text": "ata mentre il professor Darwin e il dottor Galilei interrogano il mistero delle stelle scomparse. La narrazione si svolge in un universo dove la politica interplanetaria si mescola a rituali di pulizia e a un viaggio nel tempo sospeso, con personaggi come Kenla, Joyl, Hector e Sheila che affrontano conflitti cosmici e sogni onirici. Il tutto \u00e8 avvolto da un tono surreale che mescola scienza, satira politica e una riflessione sul destino probabilistico dell\u2019universo.\n\n@ cap_21\n  + titolo: Passeggiata Stellare\n  + Dopo una notte di festa a bordo della Celestial Voyager, l'eroe Hector e la sua dama affascinata, Sheila, si dirigono verso la Piazza delle Costellazioni e poi alla Stazione Orus per un pranzo interstellare. Durante il viaggio e il pasto, Sheila stimola l'ego di Hector con conversazioni vivaci e dessert sorprendenti, trasformando la cena in un\u2019esperienza sensoriale unica.",
+      "frame": 18,
+      "length": 892
+    },
+    {
+      "id": 19,
+      "text": "un\u2019esperienza sensoriale unica.\n\n@ cap_22\n  + titolo: Darwinismi e Allerta\n  + In un dialogo tra Darwin e Galilei, i due pensatori analizzano i sette colpi che hanno plasmato la vita su Terrax, mentre i governanti, spaventati da un potenziale attacco, si preparano con urgenza. Tuttavia, ignorano che l'universo ospita altre specie senzienti, segreto che emerger\u00e0 solo nei successivi volumi della saga. L'ambientazione \u00e8 la Terrax, un pianeta dove l'evoluzione \u00e8 solo un capitolo di un pi\u00f9 ampio racconto cosmico.",
+      "frame": 19,
+      "length": 513
     }
   ],
   "chunk_to_frame": {
     "0": 0,
     "1": 1,
-    "2": 2
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7,
+    "8": 8,
+    "9": 9,
+    "10": 10,
+    "11": 11,
+    "12": 12,
+    "13": 13,
+    "14": 14,
+    "15": 15,
+    "16": 16,
+    "17": 17,
+    "18": 18,
+    "19": 19
   },
   "frame_to_chunks": {
     "0": [
@@ -33,6 +152,57 @@
     ],
     "2": [
       2
+    ],
+    "3": [
+      3
+    ],
+    "4": [
+      4
+    ],
+    "5": [
+      5
+    ],
+    "6": [
+      6
+    ],
+    "7": [
+      7
+    ],
+    "8": [
+      8
+    ],
+    "9": [
+      9
+    ],
+    "10": [
+      10
+    ],
+    "11": [
+      11
+    ],
+    "12": [
+      12
+    ],
+    "13": [
+      13
+    ],
+    "14": [
+      14
+    ],
+    "15": [
+      15
+    ],
+    "16": [
+      16
+    ],
+    "17": [
+      17
+    ],
+    "18": [
+      18
+    ],
+    "19": [
+      19
     ]
   },
   "config": {

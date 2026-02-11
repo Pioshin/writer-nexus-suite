@@ -5,15 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookAnalizer</title>
-    <link rel="stylesheet" href="static/style.css?v=1.1">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/style.css?v=1.3">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&family=Fira+Code:wght@300;400;600&display=swap"
+        rel="stylesheet">
 </head>
+
+<!-- ... -->
+
+<script src="static/app.js?v=1.3"></script>
+</body>
 
 <body>
     <div class="glass-container">
         <header>
             <div style="position: absolute; top: 20px; left: 20px;">
-                <a href="http://localhost:5000" target="_blank" class="btn-secondary"
+                <a href="http://localhost:5000" class="btn-secondary"
                     style="text-decoration: none; font-size: 0.9rem;">🚀 Vai a Kronk Writer</a>
             </div>
             <h1>BookAnalizer</h1>
@@ -73,6 +80,22 @@
                     </div>
                     <h2>Seleziona Capitoli da Analizzare</h2>
                     <p>Il testo è stato diviso in segmenti. Seleziona quelli da elaborare.</p>
+                </div>
+
+                <div class="analysis-mode-selector">
+                    <span>Modalità:</span>
+                    <label class="mode-option">
+                        <input type="radio" name="analysis-mode" value="characters" checked>
+                        <span class="mode-label">👥 Personaggi</span>
+                    </label>
+                    <label class="mode-option">
+                        <input type="radio" name="analysis-mode" value="world">
+                        <span class="mode-label">🌍 World</span>
+                    </label>
+                    <label class="mode-option">
+                        <input type="radio" name="analysis-mode" value="synopsis">
+                        <span class="mode-label">📖 Sinossi</span>
+                    </label>
                 </div>
 
                 <div class="segmentation-controls">
@@ -145,12 +168,12 @@
                 <!-- TAB CONTENT: SYNOPSIS -->
                 <div id="synopsis-container" class="synopsis-container tab-content">
                     <div class="synopsis-controls">
-                        <button id="generate-synopsis-btn" class="btn-primary">✨ Genera Sinossi POST</button>
+                        <button id="generate-synopsis-btn" class="btn-primary">✨ Sinossi Globale (5 POST)</button>
                         <span id="synopsis-status" class="status-text"></span>
                     </div>
                     <div id="synopsis-list" class="synopsis-list">
-                        <p style="text-align:center; color: var(--text-muted);">Clicca "Genera Sinossi POST" per creare
-                            riassunti dei capitoli/sezioni del manoscritto.</p>
+                        <p style="text-align:center; color: var(--text-muted);">Clicca "Sinossi Globale" per un
+                            riassunto veloce in 5 blocchi di tutto il libro.</p>
                     </div>
                 </div>
             </section>
@@ -233,7 +256,7 @@
         </div>
     </div>
 
-    <script src="static/app.js?v=1.2"></script>
+    <script src="static/app.js?v=1.4"></script>
 </body>
 
 </html>

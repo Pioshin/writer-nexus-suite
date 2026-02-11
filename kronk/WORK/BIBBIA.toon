@@ -1,45 +1,68 @@
-@ MONDO
-  + galassia: Ephemera, 46.000 anni luce dalla Via Lattea
-  + pianeta_principale: Terrax, rocce cantanti, fiumi al contrario
-  + governo: Triumvirato (Hal Seldon, Asimov Kress, Ripley Foster)
-  + tecnologia: motori iperluce, tunnel temporale, Mach5000
-  + tono: fusione rigore Asimov + demenziale Adams
+# === IMPORTATO DA BOOKANALYZER ===
+# BIBBIA - Galactic Powder Ephemera
 
-@ RAZZE
-  + umanidi: abitanti di Terrax, bipedi vari colori
-  + spaziali: esuli da Terrax, pelle grigia, logici, viaggiatori tempo
-  + [future]: altre 3 razze da svelare nei volumi 2-3
+@ PERSONAGGI
+  + asimov: Asimov Kress
+    | ruol: Dottor Asimov Kress,capo politico, triumviro
+  + jules: Jules Darwin
+    | ruol: Scienziato più influente della galassia, arrestato per necessità
+  + generale: Generale Harlan
+    | ruol: Generale Spaziale e Leader di Aleph
+  + hal: Hal Seldon
+    | ruol: Ammiraglio del Coordinamento Interplanetario Supremo, triumviro, capo militare
+  + hector: Hector Starborn
+    | ruol: Tecnico informatico dell'help desk, Tecnico IT, protagonista, anti eroe, socialmente impacciato
+  + joyl: Joyl Cond‑Horr
+    | ruol: Pilota tattico e Membro della squadra 3G, cinico e muscoloso
+  + kenla: Kenla Quilah
+    | ruol: Veterana e Capitano della squadra 3G, capelli corti corvini, fisico perfetto
+  + nikola: Nikola Galilei
+    | ruol: Scienziato e Inventore, folle e geniale, primo mentore di hector
+  + ripley: Ripley Foster
+    | ruol: Leader politico (onorevolissima), Ambasciatrice di Terrax, di nobile famiglia
+  + sheila: Sheila Evening
+    | ruol: Eroina coprotagonista con hector (romance) e operatrice di marketing sessuale
 
-@ PROTAGONISTI (4 attuali + 2 futuri)
-  + hector: Hector "No-one" Starborn, tecnico help desk, antieroe
-    | razza: umanide
-    | tratti: sarcastico, fame cronica, incompetente sociale
-    | arco: da tecnico a ISCIS (Inviato Speciale)
-  + sheila: Sheila Evening/Mornin, pianeta Malaffare
-    | razza: umanide (Malaffare)
-    | tratti: eroina, emotiva, empatica
-    | ruolo: cardine storia d'amore con Hector
-  + kenla: Kenla Quilah, comandante Squadra 3G
-    | razza: spaziale
-    | tratti: veterana, pragmatica, spara laser attraverso aghi
-  + darwin: Dr. Jules Darwin, scienziato TERRA, barba bianca
-    | razza: spaziale
-    | tratti: razionale, arrestato, conosce segreto stelle
-  + [futuro_1]: da definire nei prossimi volumi
-  + [futuro_2]: da definire nei prossimi volumi
+@ LUOGHI
+  + terrax: Terrax
+    | desc: Pianeta blu‑verde situato a 46.000 anni luce dalla Via Lattea, abitato dagli Umanidi................
+  + galassia_ephemera: Galassia Ephemera
+    | desc: Estensione cosmica più vasta e complessa di quanto gli Umanidi immaginino, contenente molte altre ci...
+  + via_lattea: Via Lattea
+    | desc: Galassia di riferimento per la distanza di Terrax, menzionata come punto di confronto................
+  + cabina_237: Cabina 237
+    | desc: Stanza di bordo dove Hector rimane alla soglia, ambiente di inserimento temporaneo per missioni segr...
+  + celestial_voyager: Celestial Voyager
+    | desc: Nave stellare su cui Sheila lavora, centro di attività commerciali e sociali................
+  + mercato_delle_spezie: Mercato delle spezie di Aldebaran
+    | desc: Mercato virtuale di spezie su Aldebaran, indicato da una colonna olografica................
 
-@ PERSONAGGI_PRINCIPALI
-  + joyl: Joyl Cond-Horr, pilota tattico 3G
-    | razza: spaziale
-    | tratti: muscoli, malumore, cinico
-  + souvenir: robot 3G, ossessionato reality show
-    | razza: robot
-    | tratti: pedante, balbuziente, logico irritante
-  + galilei: Prof. Nikola Galilei, TECO, ossessionato pendoli
-    | razza: umanide
-    | tratti: geniale, distratto, macchina caffè temporale
+@ OGGETTI
+  + abito_di_tessuto_can: Abito di tessuto cangiante
+    | desc: Abbigliamento di lusso con tessuto che si adatta al corpo, tecnologia di auto-adesione................
+  + tessuto_autostrintan: Tessuto autostrintante
+    | desc: Materiale intelligente che si adatta al corpo, rappresenta tecnologia avanzata dei ricchi..............
 
-@ REGOLE_NARRATIVE
-  + burocrazia: controlli assurdi, moduli infiniti
-  + paradossi: viaggi tempo, eco nave, inversione CPT
-  + umorismo: digressioni, battute meta, riferimenti pop anni '80
+@ SOCIETA
+  + economia: Economia
+    | desc: Sistema sociale e finanziario che gli Umanidi considerano vitale................
+  + triumvirato: Triumvirato
+    | desc: Entità governativa o corporativa che controlla la missione di Hector, agenzia di intelligence con po...
+  + teletrasporto_di_ins: Teletrasporto di inserimento
+    | desc: Mezzo di trasporto non convenzionale usato per bypassare controlli di sicurezza, parte del protocoll...
+  + ologrammi_indicazion: Ologrammi indicazionali
+    | desc: Schermi olografici che mostrano destinazioni esotiche, parte del sistema di navigazione e pubblicità...
+  + umanidi: Umanidi
+    | desc: Popolazione bipede di vari colori e dimensioni, con cultura focalizzata su attività quotidiane e una...
+  + spaziali: Spaziali
+    | desc: Esuli o exili che gli Umanidi chiamano 'Spaziali', rappresentano una prospettiva diversa e spesso ma...
+  + huazzamericangirls: HUAZZAMERICANGIRLS
+    | desc: Servizio di outsourcing specializzato in marketing sessuale per adulti, rappresenta la cultura del c...
+  + malaffare: Malaffare
+    | desc: Pianeta caratterizzato da attività illecite, cultura del crimine e doppie vite................
+  + sistema_di_lavoro_"d: Sistema di lavoro "dormire per terra in ufficio"
+    | desc: Contratto di outsourcing che prevede il sonno sul posto di lavoro, riflette norme di lavoro e gerarc...
+  + cultura_del_marketin: Cultura del marketing sessuale
+    | desc: Industria di promozione erotica per adulti, dominante nella società del pianeta................
+  + mistero_particolarme: Mistero particolarmente grande
+    | desc: Evento misterioso che ha iniziato a emergere nella regione, segnalato come un grande enigma............
