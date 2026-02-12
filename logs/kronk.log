@@ -1,0 +1,35 @@
+[2026-02-12 22:47:59,288] INFO: Kuzco-Server in fase di avvio...
+Warning: OpenAI library not available. OpenAI provider will be disabled.
+Warning: Google Generative AI library not available. Google provider will be disabled.
+Warning: Anthropic library not available. Anthropic provider will be disabled.
+Loaded LLM Config: ollama/adam:latest
+ * Serving Flask app 'app'
+ * Debug mode: on
+[2026-02-12 22:47:59,292] INFO: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.133:5000
+[2026-02-12 22:47:59,292] INFO: [33mPress CTRL+C to quit[0m
+[2026-02-12 22:47:59,292] INFO:  * Restarting with stat
+[2026-02-12 22:48:01,748] INFO: Kuzco-Server in fase di avvio...
+[2026-02-12 22:48:01,751] WARNING:  * Debugger is active!
+[2026-02-12 22:48:01,751] INFO:  * Debugger PIN: 334-650-829
+[2026-02-12 22:49:51,942] INFO:  * Detected change in '/home/pioshin/AI/writer-nexus-suite/kronk/app.py', reloading
+Warning: OpenAI library not available. OpenAI provider will be disabled.
+Warning: Google Generative AI library not available. Google provider will be disabled.
+Warning: Anthropic library not available. Anthropic provider will be disabled.
+Loaded LLM Config: ollama/adam:latest
+[2026-02-12 22:49:52,628] INFO:  * Restarting with stat
+[2026-02-12 22:49:55,180] INFO: Kuzco-Server in fase di avvio...
+[2026-02-12 22:49:55,183] WARNING:  * Debugger is active!
+[2026-02-12 22:49:55,183] INFO:  * Debugger PIN: 334-650-829
+[2026-02-12 22:50:49,222] INFO:  * Detected change in '/home/pioshin/AI/writer-nexus-suite/kronk/app.py', reloading
+Warning: OpenAI library not available. OpenAI provider will be disabled.
+Warning: Google Generative AI library not available. Google provider will be disabled.
+Warning: Anthropic library not available. Anthropic provider will be disabled.
+Loaded LLM Config: ollama/adam:latest
+[2026-02-12 22:50:49,922] INFO:  * Restarting with stat
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/app.py", line 208
+    chat_data = {
+                ^
+SyntaxError: '{' was never closed

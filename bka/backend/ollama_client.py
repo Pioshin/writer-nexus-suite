@@ -18,6 +18,21 @@ class OllamaClient:
         """Update configuration dynamically."""
         self.client.update_config(provider, model, base_url, api_key, ctx, timeout, keep_alive)
 
+    @property
+    def model(self): return self.client.model
+    @property
+    def base_url(self): return self.client.base_url
+    @property
+    def ctx(self): return self.client.ctx
+    @property
+    def timeout(self): return self.client.timeout
+    @property
+    def provider(self): return self.client.provider
+    @property
+    def api_key(self): return self.client.api_key
+    @property
+    def keep_alive(self): return self.client.keep_alive
+
     def extract_json(self, text):
         return self.client.extract_json(text)
 

@@ -34,12 +34,33 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadSettings() {
         return {
             provider: localStorage.getItem('ba_provider') || DEFAULTS.provider,
-            url: localStorage.getItem('ba_ollama_url') || DEFAULTS.url,
-            model: localStorage.getItem('ba_ollama_model') || DEFAULTS.model,
+            url: localStorage.getItem('ollama_url') || DEFAULTS.url,
+            model: localStorage.getItem('ollama_model') || DEFAULTS.model,
             ctx: parseInt(localStorage.getItem('ba_ollama_ctx') || DEFAULTS.ctx),
             timeout: parseInt(localStorage.getItem('ba_ollama_timeout') || DEFAULTS.timeout),
             api_key: localStorage.getItem('ba_api_key') || DEFAULTS.api_key
         };
+    }
+
+    async function syncSettingsFromBackend() {
+        try {
+            console.log("Syncing settings from backend...");
+            const res = await fetch('/api/config');
+            if (res.ok) {
+                const remote = await res.json();
+                // Update LocalStorage from Remote
+                if (remote.model) localStorage.setItem('ollama_model', remote.model);
+                if (remote.url) localStorage.setItem('ollama_url', remote.url);
+                if (remote.ctx) localStorage.setItem('ba_ollama_ctx', remote.ctx);
+                if (remote.timeout) localStorage.setItem('ba_ollama_timeout', remote.timeout);
+                // Provider/API Key might not be in remote (or valid to share), but we trust backend
+                // The backend config Persistence is now the Source of Truth.
+
+                console.log("Settings synced:", remote);
+            }
+        } catch (e) {
+            console.error("Failed to sync settings:", e);
+        }
     }
 
     function toggleProviderFields() {
@@ -610,7 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.synopsis-card').forEach((card, idx) => {
             const content = card.querySelector('.post-content');
             const titleEl = card.querySelector('.post-title');
-            const numEl = card.querySelector('.post-number');
+            // const numEl = card.querySelector('.post-number'); // Unused
             exportSynopses.push({
                 post_number: idx + 1,
                 title: titleEl ? titleEl.textContent : `POST ${idx + 1}`,
@@ -622,8 +643,6 @@ document.addEventListener('DOMContentLoaded', () => {
             title: title,
             characters: exportChars,
             world: exportWorld,
-            synopses: exportSynopses.length > 0 ? exportSynopses : currentSynopses,
-            synopses: exportSynopses.length > 0 ? exportSynopses : currentSynopses,
             synopses: exportSynopses.length > 0 ? exportSynopses : currentSynopses,
             chunks: currentChunks, // Persist chunks
             deleted: Array.from(deletedEntities), // Persist blacklist
@@ -1438,4 +1457,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    // Initialize settings from backend
+    syncSettingsFromBackend().then(() => {
+        populateSettingsForm();
+    });
 });

@@ -25,7 +25,9 @@
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&family=Fira+Code:wght@300;400;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&family=Fira+Code:wght@300;400;600&display=swap"
+        rel="stylesheet">
     <style>
         /* LCARS THEME OVERRIDE */
         :root {
@@ -33,7 +35,8 @@
             --lcars-orange: #FF8800;
             --lcars-red: #CC2222;
             --lcars-black: #000000;
-            --lcars-bg: rgba(0, 0, 0, 0.4); /* High transparency for IODA */
+            --lcars-bg: rgba(0, 0, 0, 0.4);
+            /* High transparency for IODA */
             --lcars-panel: rgba(0, 0, 0, 0.6);
         }
 
@@ -43,33 +46,54 @@
             color: var(--lcars-amber) !important;
         }
 
-        h1, h2, h3, h4, h5, h6, .font-bold, header, button, .section-header {
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .font-bold,
+        header,
+        button,
+        .section-header {
             font-family: 'Antonio', sans-serif !important;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
         /* Override Tailwind Backgrounds for Transparency */
-        .bg-scifi-900, .bg-slate-900, .bg-gray-900 {
+        .bg-scifi-900,
+        .bg-slate-900,
+        .bg-gray-900 {
             background-color: transparent !important;
         }
-        .bg-scifi-800, .bg-slate-800, .bg-gray-800 {
+
+        .bg-scifi-800,
+        .bg-slate-800,
+        .bg-gray-800 {
             background-color: var(--lcars-panel) !important;
             border: 1px solid var(--lcars-amber) !important;
         }
 
         /* Text Colors */
-        .text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500, .text-white {
+        .text-slate-200,
+        .text-slate-300,
+        .text-slate-400,
+        .text-slate-500,
+        .text-white {
             color: var(--lcars-amber) !important;
         }
-        
+
         /* Borders */
-        .border-slate-700, .border-slate-600 {
+        .border-slate-700,
+        .border-slate-600 {
             border-color: var(--lcars-orange) !important;
         }
 
         /* Inputs */
-        input, select, textarea {
+        input,
+        select,
+        textarea {
             background-color: rgba(0, 0, 0, 0.8) !important;
             border: 1px solid var(--lcars-amber) !important;
             color: var(--lcars-amber) !important;
@@ -85,20 +109,23 @@
             font-weight: bold !important;
             transition: all 0.2s;
         }
+
         button:hover {
             background-color: var(--lcars-amber) !important;
             transform: scale(1.05);
         }
-        
+
         /* Scrollbar custom per un look cyber */
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
-            background: #000; 
+            background: #000;
         }
+
         ::-webkit-scrollbar-thumb {
-            background: var(--lcars-amber); 
+            background: var(--lcars-amber);
             border-radius: 4px;
         }
 
@@ -133,7 +160,7 @@
     <aside class="w-64 bg-scifi-800 border-r border-slate-700 flex flex-col transition-all duration-300" id="sidebar">
         <!-- SUITE NAV -->
         <div class="p-4 pb-0">
-            <a href="http://localhost:8000" 
+            <a href="http://localhost:8000"
                 class="block w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-center rounded-lg text-xs font-bold transition-all border border-slate-600">
                 📊 Vai a Analyst
             </a>
@@ -203,6 +230,11 @@
                         title="Impostazioni">
                         ⚙️
                     </button>
+                    <div class="flex items-center gap-2 mr-4 border-r border-slate-700 pr-4">
+                        <span class="text-[10px] text-slate-500">Aᴬ</span>
+                        <input type="range" id="font-size-slider" min="12" max="24" value="16"
+                            class="w-20 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
                     <div class="text-xs text-slate-500" id="status-indicator">Ready</div>
                 </div>
             </header>
@@ -505,6 +537,25 @@
         const fileList = document.getElementById('file-list');
         const chatHistoryList = document.getElementById('chat-history-list');
         const statusIndicator = document.getElementById('status-indicator');
+
+        // Font Size Control
+        const fontSizeSlider = document.getElementById('font-size-slider');
+        const chatContainerEl = document.getElementById('chat-container');
+
+        if (fontSizeSlider) {
+            // Load saved preference
+            const savedSize = localStorage.getItem('kronk_font_size');
+            if (savedSize) {
+                fontSizeSlider.value = savedSize;
+                chatContainerEl.style.fontSize = savedSize + 'px';
+            }
+
+            fontSizeSlider.addEventListener('input', (e) => {
+                const size = e.target.value;
+                chatContainerEl.style.fontSize = size + 'px';
+                localStorage.setItem('kronk_font_size', size);
+            });
+        }
 
         let chatHistory = [];
         let currentChatId = null;
@@ -1112,7 +1163,7 @@
                 const res = await fetch('/bibbia/save', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         dna: bibbiaDna.value,
                         sinossi: bibbiaSinossi.value
                     })

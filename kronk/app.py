@@ -58,6 +58,19 @@ def get_models():
         logging.warning(f"Errore recupero modelli: {e}")
         return jsonify({"error": str(e), "models": []})
 
+@app.route('/api/config', methods=['GET'])
+def get_config():
+    """Recupera configurazione LLM corrente."""
+    return jsonify({
+        "provider": global_llm_client.provider,
+        "model": global_llm_client.model,
+        "base_url": global_llm_client.base_url,
+        "api_key": global_llm_client.api_key,
+        "ctx": global_llm_client.ctx,
+        "timeout": global_llm_client.timeout,
+        "keep_alive": global_llm_client.keep_alive
+    })
+
 @app.route('/api/config', methods=['POST'])
 def update_config():
     """Aggiorna configurazione LLM globale."""
@@ -88,7 +101,7 @@ def rename_chat():
         if not chat_id or not new_title:
              return jsonify({"error": "Missing params"}), 400
 
-        filepath = os.path.join(sandbox.CHAT_HISTORY_DIR, f"chat_{chat_id}.json")
+        filepath = os.path.join(CHAT_HISTORY_DIR, f"chat_{chat_id}.json")
         if not os.path.exists(filepath):
             return jsonify({"error": "Chat not found"}), 404
             
@@ -192,11 +205,15 @@ def save_chat_session(chat_id, history, title=None):
                     old_data = json.load(f)
             except: pass
         
+        # Logic: If 'title' arg is provided, use it (Renaming). 
+        # Otherwise keep existing title. Verification: 'title' arg is passed when generating specific new title.
+        final_title = title if title else old_data.get("title", "Nuova Chat")
+        
         chat_data = {
             "id": chat_id,
             "history": history,
             "last_updated": now,
-            "title": old_data.get("title", title if title else "Nuova Chat")
+            "title": final_title
         }
 
         with open(filepath, 'w', encoding='utf-8') as f:
