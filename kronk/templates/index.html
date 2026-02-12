@@ -38,6 +38,7 @@
             --lcars-bg: rgba(0, 0, 0, 0.4);
             /* High transparency for IODA */
             --lcars-panel: rgba(0, 0, 0, 0.6);
+            --chat-font-size: 16px;
         }
 
         body {
@@ -151,6 +152,14 @@
 
         .collapsed .rotate-icon {
             transform: rotate(-90deg);
+        }
+
+        #chat-container .rounded-lg {
+            font-size: var(--chat-font-size) !important;
+        }
+
+        #chat-container .prose * {
+            font-size: var(--chat-font-size) !important;
         }
     </style>
 </head>
@@ -547,12 +556,12 @@
             const savedSize = localStorage.getItem('kronk_font_size');
             if (savedSize) {
                 fontSizeSlider.value = savedSize;
-                chatContainerEl.style.fontSize = savedSize + 'px';
+                document.documentElement.style.setProperty('--chat-font-size', savedSize + 'px');
             }
 
             fontSizeSlider.addEventListener('input', (e) => {
                 const size = e.target.value;
-                chatContainerEl.style.fontSize = size + 'px';
+                document.documentElement.style.setProperty('--chat-font-size', size + 'px');
                 localStorage.setItem('kronk_font_size', size);
             });
         }
