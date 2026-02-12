@@ -34,8 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadSettings() {
         return {
             provider: localStorage.getItem('ba_provider') || DEFAULTS.provider,
-            url: localStorage.getItem('ollama_url') || DEFAULTS.url,
-            model: localStorage.getItem('ollama_model') || DEFAULTS.model,
+            url: localStorage.getItem('ba_ollama_url') || DEFAULTS.url,
+            model: localStorage.getItem('ba_ollama_model') || DEFAULTS.model,
             ctx: parseInt(localStorage.getItem('ba_ollama_ctx') || DEFAULTS.ctx),
             timeout: parseInt(localStorage.getItem('ba_ollama_timeout') || DEFAULTS.timeout),
             api_key: localStorage.getItem('ba_api_key') || DEFAULTS.api_key
@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok) {
                 const remote = await res.json();
                 // Update LocalStorage from Remote
-                if (remote.model) localStorage.setItem('ollama_model', remote.model);
-                if (remote.url) localStorage.setItem('ollama_url', remote.url);
+                if (remote.model) localStorage.setItem('ba_ollama_model', remote.model);
+                if (remote.url) localStorage.setItem('ba_ollama_url', remote.url);
                 if (remote.ctx) localStorage.setItem('ba_ollama_ctx', remote.ctx);
                 if (remote.timeout) localStorage.setItem('ba_ollama_timeout', remote.timeout);
                 // Provider/API Key might not be in remote (or valid to share), but we trust backend
