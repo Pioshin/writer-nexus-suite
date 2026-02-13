@@ -31,7 +31,36 @@ document.addEventListener('DOMContentLoaded', () => {
         api_key: ''
     };
 
-    function loadSettings() {
+    async function loadSettings() {
+        // Try fetching from backend first (Unified Config)
+        try {
+            const res = await fetch('/api/config');
+            if (res.ok) {
+                const remote = await res.json();
+                console.log("Synced settings from backend:", remote);
+
+                // Update LocalStorage to match backend
+                localStorage.setItem('ba_provider', remote.provider || 'ollama');
+                localStorage.setItem('ba_ollama_model', remote.model || 'adam:latest');
+                localStorage.setItem('ba_ollama_url', remote.url || 'http://127.0.0.1:11434');
+                localStorage.setItem('ba_api_key', remote.api_key || '');
+                localStorage.setItem('ba_ollama_ctx', remote.ctx || 32768);
+                localStorage.setItem('ba_ollama_timeout', remote.timeout || 180);
+
+                return {
+                    provider: remote.provider || 'ollama',
+                    url: remote.url || 'http://127.0.0.1:11434',
+                    model: remote.model || 'adam:latest',
+                    ctx: remote.ctx || 32768,
+                    timeout: remote.timeout || 180,
+                    api_key: remote.api_key || ''
+                };
+            }
+        } catch (e) {
+            console.warn("Backend sync failed, using local settings:", e);
+        }
+
+        // Fallback to LocalStorage
         return {
             provider: localStorage.getItem('ba_provider') || DEFAULTS.provider,
             url: localStorage.getItem('ba_ollama_url') || DEFAULTS.url,
@@ -42,26 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    async function syncSettingsFromBackend() {
-        try {
-            console.log("Syncing settings from backend...");
-            const res = await fetch('/api/config');
-            if (res.ok) {
-                const remote = await res.json();
-                // Update LocalStorage from Remote
-                if (remote.model) localStorage.setItem('ba_ollama_model', remote.model);
-                if (remote.url) localStorage.setItem('ba_ollama_url', remote.url);
-                if (remote.ctx) localStorage.setItem('ba_ollama_ctx', remote.ctx);
-                if (remote.timeout) localStorage.setItem('ba_ollama_timeout', remote.timeout);
-                // Provider/API Key might not be in remote (or valid to share), but we trust backend
-                // The backend config Persistence is now the Source of Truth.
+    // Old syncSettingsFromBackend removed, logic integrated into loadSettings
 
-                console.log("Settings synced:", remote);
-            }
-        } catch (e) {
-            console.error("Failed to sync settings:", e);
-        }
-    }
 
     function toggleProviderFields() {
         const provider = settingProvider.value;
@@ -88,8 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function populateSettingsForm() {
-        const settings = loadSettings();
+    async function populateSettingsForm() {
+        const settings = await loadSettings();
         settingProvider.value = settings.provider;
         settingUrl.value = settings.url;
         settingCtx.value = settings.ctx;
@@ -111,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchModels() {
-        const settings = loadSettings();
+        const settings = await loadSettings();
         if (settings.provider !== 'ollama') return; // Only fetch for Ollama
 
         try {

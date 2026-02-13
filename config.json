@@ -1,0 +1,19 @@
+{
+    "ai": {
+        "provider": "ollama",
+        "model": "adam:latest",
+        "url": "http://127.0.0.1:11434",
+        "api_key": "",
+        "ctx": 32768,
+        "timeout": 180,
+        "keep_alive": "5m"
+    },
+    "ui": {
+        "theme": "amber",
+        "font_size": "medium"
+    },
+    "paths": {
+        "sandbox_root": "./sandbox",
+        "bibbia_root": "./bibbia"
+    }
+}

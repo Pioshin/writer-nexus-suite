@@ -4,6 +4,7 @@ import json
 import requests
 import logging
 import traceback
+import sys # Added during debugging
 from flask import Flask, render_template, request, jsonify, Response, stream_with_context
 
 import sandbox
@@ -14,10 +15,26 @@ except ImportError:
     # Fallback/Mock se llm_client non copiato (ma dovremmo averlo)
     import sys
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from llm_client import LLMClient
 
+# Import shared config manager
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from config_manager import UnifiedConfigManager
+
 app = Flask(__name__)
-global_llm_client = LLMClient()
+config_manager = UnifiedConfigManager()
+# Initialize LLMClient with shared config
+ai_config = config_manager.get_ai_config()
+global_llm_client = LLMClient(
+    provider=ai_config.get("provider", "ollama"),
+    model=ai_config.get("model", "adam:latest"),
+    base_url=ai_config.get("url", "http://127.0.0.1:11434"),
+    api_key=ai_config.get("api_key", ""),
+    ctx=ai_config.get("ctx", 32768),
+    timeout=ai_config.get("timeout", 180),
+    keep_alive=ai_config.get("keep_alive", "5m")
+)
 
 # ===== LOGGING CONFIGURATION =====
 logging.basicConfig(
@@ -26,11 +43,9 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()]
 )
 
-# CONFIGURAZIONE
-OLLAMA_API_URL = "http://localhost:11434/api/chat"
-OLLAMA_TAGS_URL = "http://localhost:11434/api/tags" # URL per la lista modelli
-MODEL_NAME = "qwen3-vl:latest" 
-OLLAMA_TIMEOUT = 120 # Secondi prima del timeout
+# CONFIGURAZIONE (Now controlled by UnifiedConfigManager)
+# OLLAMA_API_URL and MODEL_NAME are deprecated here, but kept if used locally for fallback
+# We should use config_manager.get_ai_config() instead.
 
 # Assicuriamo che la default esista
 if not os.path.exists(sandbox.DEFAULT_SANDBOX_DIR):
@@ -50,7 +65,8 @@ def handle_exception(e):
 def get_models():
     """Recupera la lista dei modelli disponibili su Ollama."""
     try:
-        base_url = request.args.get('ollama_url', OLLAMA_API_URL).replace('/api/chat', '')
+        ai_config = config_manager.get_ai_config()
+        base_url = request.args.get('ollama_url', ai_config.get("url")).replace('/api/chat', '')
         r = requests.get(f"{base_url}/api/tags", timeout=5)
         r.raise_for_status()
         return jsonify(r.json())
@@ -61,31 +77,51 @@ def get_models():
 @app.route('/api/config', methods=['GET'])
 def get_config():
     """Recupera configurazione LLM corrente."""
-    return jsonify({
-        "provider": global_llm_client.provider,
-        "model": global_llm_client.model,
-        "base_url": global_llm_client.base_url,
-        "api_key": global_llm_client.api_key,
-        "ctx": global_llm_client.ctx,
-        "timeout": global_llm_client.timeout,
-        "keep_alive": global_llm_client.keep_alive
-    })
+    """Recupera configurazione LLM corrente."""
+    return jsonify(config_manager.get_ai_config())
 
 @app.route('/api/config', methods=['POST'])
 def update_config():
     """Aggiorna configurazione LLM globale."""
     try:
         data = request.get_json(force=True)
-        global_llm_client.update_config(
+        
+        # Update shared config file
+        config_manager.update_ai_config(
             provider=data.get("provider"),
             model=data.get("model"),
-            base_url=data.get("url") or data.get("base_url"),
+            url=data.get("url") or data.get("base_url"),
             api_key=data.get("api_key"),
             ctx=data.get("ctx"),
             timeout=data.get("timeout"),
             keep_alive=data.get("keep_alive")
         )
-        return jsonify({"status": "updated", "config": data})
+
+        # Update running LLM client instance
+        # Re-fetch strictly to ensure consistency with what was saved
+        new_conf = config_manager.get_ai_config()
+        global_llm_client.update_config(
+            provider=new_conf.get("provider"),
+            model=new_conf.get("model"),
+            base_url=new_conf.get("url"),
+            api_key=new_conf.get("api_key"),
+            ctx=new_conf.get("ctx"),
+            timeout=new_conf.get("timeout"),
+            keep_alive=new_conf.get("keep_alive")
+        )
+        return jsonify({"status": "updated", "config": new_conf})
+        # Re-fetch strictly to ensure consistency with what was saved
+        new_conf = config_manager.get_ai_config()
+        global_llm_client.update_config(
+            provider=new_conf.get("provider"),
+            model=new_conf.get("model"),
+            base_url=new_conf.get("url"),
+            api_key=new_conf.get("api_key"),
+            ctx=new_conf.get("ctx"),
+            timeout=new_conf.get("timeout"),
+            keep_alive=new_conf.get("keep_alive")
+        )
+        return jsonify({"status": "updated", "config": new_conf})
     except Exception as e:
         logging.error(f"Errore config: {e}")
         return jsonify({"error": str(e)}), 500

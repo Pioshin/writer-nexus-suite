@@ -1,35 +1,108 @@
-[2026-02-12 22:47:59,288] INFO: Kuzco-Server in fase di avvio...
+[2026-02-13 15:19:22,775] INFO: Kuzco-Server in fase di avvio...
 Warning: OpenAI library not available. OpenAI provider will be disabled.
 Warning: Google Generative AI library not available. Google provider will be disabled.
 Warning: Anthropic library not available. Anthropic provider will be disabled.
 Loaded LLM Config: ollama/adam:latest
  * Serving Flask app 'app'
  * Debug mode: on
-[2026-02-12 22:47:59,292] INFO: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+[2026-02-13 15:19:22,781] INFO: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5000
  * Running on http://192.168.1.133:5000
-[2026-02-12 22:47:59,292] INFO: [33mPress CTRL+C to quit[0m
-[2026-02-12 22:47:59,292] INFO:  * Restarting with stat
-[2026-02-12 22:48:01,748] INFO: Kuzco-Server in fase di avvio...
-[2026-02-12 22:48:01,751] WARNING:  * Debugger is active!
-[2026-02-12 22:48:01,751] INFO:  * Debugger PIN: 334-650-829
-[2026-02-12 22:49:51,942] INFO:  * Detected change in '/home/pioshin/AI/writer-nexus-suite/kronk/app.py', reloading
-Warning: OpenAI library not available. OpenAI provider will be disabled.
-Warning: Google Generative AI library not available. Google provider will be disabled.
-Warning: Anthropic library not available. Anthropic provider will be disabled.
-Loaded LLM Config: ollama/adam:latest
-[2026-02-12 22:49:52,628] INFO:  * Restarting with stat
-[2026-02-12 22:49:55,180] INFO: Kuzco-Server in fase di avvio...
-[2026-02-12 22:49:55,183] WARNING:  * Debugger is active!
-[2026-02-12 22:49:55,183] INFO:  * Debugger PIN: 334-650-829
-[2026-02-12 22:50:49,222] INFO:  * Detected change in '/home/pioshin/AI/writer-nexus-suite/kronk/app.py', reloading
-Warning: OpenAI library not available. OpenAI provider will be disabled.
-Warning: Google Generative AI library not available. Google provider will be disabled.
-Warning: Anthropic library not available. Anthropic provider will be disabled.
-Loaded LLM Config: ollama/adam:latest
-[2026-02-12 22:50:49,922] INFO:  * Restarting with stat
-  File "/home/pioshin/AI/writer-nexus-suite/kronk/app.py", line 208
-    chat_data = {
-                ^
-SyntaxError: '{' was never closed
+[2026-02-13 15:19:22,781] INFO: [33mPress CTRL+C to quit[0m
+[2026-02-13 15:19:22,781] INFO:  * Restarting with stat
+[2026-02-13 15:19:25,163] INFO: Kuzco-Server in fase di avvio...
+[2026-02-13 15:19:25,166] WARNING:  * Debugger is active!
+[2026-02-13 15:19:25,166] INFO:  * Debugger PIN: 285-729-148
+[2026-02-13 15:19:43,049] INFO: 127.0.0.1 - - [13/Feb/2026 15:19:43] "GET / HTTP/1.1" 200 -
+[2026-02-13 15:19:43,279] INFO: 127.0.0.1 - - [13/Feb/2026 15:19:43] "GET /files?path=./sandbox HTTP/1.1" 200 -
+[2026-02-13 15:19:43,280] INFO: 127.0.0.1 - - [13/Feb/2026 15:19:43] "GET /chats HTTP/1.1" 200 -
+[2026-02-13 15:19:43,319] INFO: 127.0.0.1 - - [13/Feb/2026 15:19:43] "GET /chats HTTP/1.1" 200 -
+[2026-02-13 15:19:43,386] ERROR: Uncaught Exception: <NotFound '404: Not Found'>
+Traceback (most recent call last):
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-02-13 15:19:43,386] INFO: 127.0.0.1 - - [13/Feb/2026 15:19:43] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+[2026-02-13 15:19:58,090] INFO: 127.0.0.1 - - [13/Feb/2026 15:19:58] "GET /models?ollama_url=http://localhost:11434 HTTP/1.1" 200 -
+[2026-02-13 15:20:01,369] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:01] "GET /models?ollama_url=http://localhost:11434 HTTP/1.1" 200 -
+[2026-02-13 15:20:02,013] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:02] "GET /models?ollama_url=http://localhost:11434 HTTP/1.1" 200 -
+[2026-02-13 15:20:05,135] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:05] "POST /api/config HTTP/1.1" 200 -
+[2026-02-13 15:20:05,152] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:05] "GET /files?path=./sandbox HTTP/1.1" 200 -
+[2026-02-13 15:20:09,708] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:09] "GET / HTTP/1.1" 200 -
+[2026-02-13 15:20:09,789] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:09] "GET /files?path=./sandbox HTTP/1.1" 200 -
+[2026-02-13 15:20:09,790] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:09] "GET /chats HTTP/1.1" 200 -
+[2026-02-13 15:20:09,798] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:09] "GET /chats HTTP/1.1" 200 -
+[2026-02-13 15:20:09,815] ERROR: Uncaught Exception: <NotFound '404: Not Found'>
+Traceback (most recent call last):
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-02-13 15:20:09,815] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:09] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+[2026-02-13 15:20:42,005] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:42] "GET / HTTP/1.1" 200 -
+[2026-02-13 15:20:42,072] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:42] "GET /files?path=./sandbox HTTP/1.1" 200 -
+[2026-02-13 15:20:42,073] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:42] "GET /chats HTTP/1.1" 200 -
+[2026-02-13 15:20:42,080] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:42] "GET /chats HTTP/1.1" 200 -
+[2026-02-13 15:20:42,123] ERROR: Uncaught Exception: <NotFound '404: Not Found'>
+Traceback (most recent call last):
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-02-13 15:20:42,123] INFO: 127.0.0.1 - - [13/Feb/2026 15:20:42] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+[2026-02-13 15:27:39,098] INFO: 127.0.0.1 - - [13/Feb/2026 15:27:39] "GET / HTTP/1.1" 200 -
+[2026-02-13 15:27:39,183] INFO: 127.0.0.1 - - [13/Feb/2026 15:27:39] "GET /chats HTTP/1.1" 200 -
+[2026-02-13 15:27:39,183] INFO: 127.0.0.1 - - [13/Feb/2026 15:27:39] "GET /files?path=./sandbox HTTP/1.1" 200 -
+[2026-02-13 15:27:39,194] INFO: 127.0.0.1 - - [13/Feb/2026 15:27:39] "GET /chats HTTP/1.1" 200 -
+[2026-02-13 15:27:39,211] ERROR: Uncaught Exception: <NotFound '404: Not Found'>
+Traceback (most recent call last):
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/app.py", line 891, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/app.py", line 500, in raise_routing_exception
+    raise request.routing_exception  # type: ignore[misc]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/flask/ctx.py", line 362, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "/home/pioshin/AI/writer-nexus-suite/kronk/venv/lib/python3.13/site-packages/werkzeug/routing/map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+[2026-02-13 15:27:39,212] INFO: 127.0.0.1 - - [13/Feb/2026 15:27:39] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 500 -
+[2026-02-13 15:27:40,680] INFO: 127.0.0.1 - - [13/Feb/2026 15:27:40] "GET /models?ollama_url=http://localhost:11434 HTTP/1.1" 200 -
+[2026-02-13 15:27:43,878] INFO: 127.0.0.1 - - [13/Feb/2026 15:27:43] "POST /api/config HTTP/1.1" 200 -
+[2026-02-13 15:27:43,928] INFO: 127.0.0.1 - - [13/Feb/2026 15:27:43] "GET /files?path=./sandbox HTTP/1.1" 200 -

@@ -4,60 +4,61 @@ import re
 import time
 import os
 
+import sys
+# Import shared config manager
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from config_manager import UnifiedConfigManager
+
 class LLMClient:
-    def __init__(self, provider="ollama", model="adam:latest", base_url="http://127.0.0.1:11434", api_key="", ctx=32768, timeout=180, keep_alive="5m"):
-        self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "llm_config.json")
+    def __init__(self, provider=None, model=None, base_url=None, api_key=None, ctx=None, timeout=None, keep_alive=None):
+        self.config_manager = UnifiedConfigManager()
         
-        # Defaults
-        self.provider = provider
-        self.model = model
-        self.base_url = base_url
-        self.api_key = api_key
-        self.ctx = ctx
-        self.timeout = timeout
-        self.keep_alive = keep_alive
-        
-        # Load Config
+        # Load Initial Config from Manager
         self.load_config()
+        
+        # Overrides if provided in init (rarely used now)
+        if provider: self.provider = provider
+        if model: self.model = model
+        if base_url: self.base_url = base_url
+        if api_key: self.api_key = api_key
+        if ctx: self.ctx = ctx
+        if timeout: self.timeout = timeout
+        if keep_alive: self.keep_alive = keep_alive
         
         # Ollama specific
         self.ollama_api_chat = f"{self.base_url}/api/chat"
         self.ollama_api_generate = f"{self.base_url}/api/generate"
 
     def load_config(self):
-        """Load configuration from JSON file."""
-        if os.path.exists(self.config_file):
-            try:
-                with open(self.config_file, 'r', encoding='utf-8') as f:
-                    config = json.load(f)
-                    self.provider = config.get("provider", self.provider)
-                    self.model = config.get("model", self.model)
-                    self.base_url = config.get("base_url", self.base_url)
-                    self.api_key = config.get("api_key", self.api_key)
-                    self.ctx = config.get("ctx", self.ctx)
-                    self.timeout = config.get("timeout", self.timeout)
-                    self.keep_alive = config.get("keep_alive", self.keep_alive)
-                    print(f"Loaded LLM Config: {self.provider}/{self.model}")
-            except Exception as e:
-                print(f"Error loading config: {e}")
+        """Load configuration from Shared Config Manager."""
+        try:
+            ai_config = self.config_manager.get_ai_config()
+            self.provider = ai_config.get("provider", "ollama")
+            self.model = ai_config.get("model", "adam:latest")
+            self.base_url = ai_config.get("url", "http://127.0.0.1:11434")
+            self.api_key = ai_config.get("api_key", "")
+            self.ctx = ai_config.get("ctx", 32768)
+            self.timeout = ai_config.get("timeout", 180)
+            self.keep_alive = ai_config.get("keep_alive", "5m")
+            print(f"Loaded Shared LLM Config: {self.provider}/{self.model}")
+        except Exception as e:
+            print(f"Error loading shared config: {e}")
 
     def save_config(self):
-        """Save current configuration to JSON file."""
-        config = {
-            "provider": self.provider,
-            "model": self.model,
-            "base_url": self.base_url,
-            "api_key": self.api_key,
-            "ctx": self.ctx,
-            "timeout": self.timeout,
-            "keep_alive": self.keep_alive
-        }
+        """Save current configuration to Shared Config."""
         try:
-            with open(self.config_file, 'w', encoding='utf-8') as f:
-                json.dump(config, f, indent=4)
-            print("LLM Config saved.")
+            self.config_manager.update_ai_config(
+                provider=self.provider,
+                model=self.model,
+                url=self.base_url,
+                api_key=self.api_key,
+                ctx=self.ctx,
+                timeout=self.timeout,
+                keep_alive=self.keep_alive
+            )
+            print("Shared LLM Config saved.")
         except Exception as e:
-            print(f"Error saving config: {e}")
+            print(f"Error saving shared config: {e}")
 
     def update_config(self, provider=None, model=None, base_url=None, api_key=None, ctx=None, timeout=None, keep_alive=None):
         """Update configuration dynamically and save to disk."""
