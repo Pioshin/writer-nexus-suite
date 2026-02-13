@@ -5,7 +5,7 @@ import time
 import os
 
 class LLMClient:
-    def __init__(self, provider="ollama", model="gpt-oss:latest", base_url="http://127.0.0.1:11434", api_key="", ctx=32768, timeout=180, keep_alive="5m"):
+    def __init__(self, provider="ollama", model="adam:latest", base_url="http://127.0.0.1:11434", api_key="", ctx=32768, timeout=180, keep_alive="5m"):
         self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "llm_config.json")
         
         # Defaults

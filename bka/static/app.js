@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULTS = {
         provider: 'ollama',
         url: 'http://127.0.0.1:11434',
-        model: 'gpt-oss:latest',
+        model: 'adam:latest',
         ctx: 32768,
         timeout: 180,
         api_key: ''
