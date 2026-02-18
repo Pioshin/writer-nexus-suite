@@ -111,6 +111,26 @@ class UnifiedConfigManager:
 
     def get_ui_config(self):
         return self.config.get("ui", DEFAULT_CONFIG["ui"])
+
+    def update_paths_config(self, **kwargs):
+        """Updates Paths settings. kwargs match keys in 'paths' section."""
+        with self._lock:
+            current = self.config.get("paths", DEFAULT_CONFIG["paths"].copy())
+            
+            changed = False
+            for k, v in kwargs.items():
+                if k in current and current[k] != v:
+                    current[k] = v
+                    changed = True
+                elif k not in current:
+                    current[k] = v
+                    changed = True
+            
+            if changed:
+                self.config["paths"] = current
+                self._save_config(self.config)
+                return True
+            return False
         
     def get_all(self):
         return self.config
