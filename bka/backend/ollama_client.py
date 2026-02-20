@@ -228,6 +228,53 @@ class OllamaClient:
 
         return refined_results
 
+    def refine_glossary(self, term_list):
+        """
+        Refines potential glossary terms (neologisms, invented words, specific terminology).
+        """
+        batch_size = 15
+        refined_results = []
+        
+        for i in range(0, len(term_list), batch_size):
+            batch = term_list[i : i + batch_size]
+            print(f"DEBUG: Refining Glossary Batch {i//batch_size + 1}...")
+            
+            prompt = f"""
+            You are a Lexicographer for a Sci-Fi/Fantasy universe.
+            I have a raw list of potential neologisms or specific terms extracted from a manuscript.
+            
+            INPUT DATA (JSON):
+            {json.dumps(batch, indent=2)}
+            
+            TASKS:
+            1. FILTER: Keep ONLY terms that are:
+               - Invented words / Neologisms
+               - Fictional Technology / Magic / Science terms
+               - Specific cultural rankings or titles (that are not standard real-world ones)
+               - Unique proper nouns for objects/concepts (NOT People, NOT Places).
+            2. DISCARD: Common words, slight typos of real words, actual people names, actual place names.
+            3. DEFINE: Write a short, in-world definition based on the provided context.
+            
+            IMPORTANT:
+            - OUTPUT VALUES (definition) MUST BE IN ITALIAN.
+            
+            OUTPUT FORMAT (JSON List):
+            [ {{"term": "Lightsaber", "definition": "Arma elegante, una lama di energia..."}} ]
+            """
+            
+            try:
+                response_text = self.client.completion(prompt)
+                batch_result = self.extract_json(response_text)
+                if isinstance(batch_result, list):
+                    refined_results.extend(batch_result)
+                else:
+                    # If LLM fails to return list, skip this batch to avoid noise
+                    print(f"WARN: Glossary batch returned invalid format: {type(batch_result)}")
+            except Exception as e:
+                print(f"ERROR Glossary Batch: {e}")
+                
+        return refined_results
+
     def generate_synopsis(self, text, num_posts=5):
         """
         Genera riassunti POST.
@@ -331,7 +378,7 @@ class OllamaClient:
             FORMATO OUTPUT (JSON):
             {{"title": "Titolo breve", "summary": "Il riassunto..."}}
             """
-        else:
+        elif mode == "world":
              prompt = f"""
             Sei un esperto di World Building.
             Estrai elementi di ambientazione in questo segmento.
@@ -346,6 +393,25 @@ class OllamaClient:
             
             OUTPUT (JSON List):
             [ {{"name": "Nome", "category": "Categoria", "context": "Descrizione"}} ]
+            """
+        else: # glossary
+             prompt = f"""
+            Sei un Lexicographer esperto in Sci-Fi/Fantasy.
+            Estrai potenziali neologismi o termini specifici dal testo.
+            
+            TESTO:
+            {chunk[:6000]}
+            
+            ISTRUZIONI:
+            1. Trova parole inventate, tecnologia fittizia, magia.
+            2. Ignora Nomi propri di persona o Luoghi comuni.
+            3. Fornisci una definizione basata sul contesto.
+
+            IMPORTANT:
+            - OUTPUT VALUES (definition, context) MUST BE IN ITALIAN.
+            
+            OUTPUT (JSON List):
+            [ {{"term": "Termine", "definition": "Definizione", "context": "Contesto"}} ]
             """
             
         try:
