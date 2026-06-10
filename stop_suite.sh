@@ -1,8 +1,16 @@
 #!/bin/bash
 
-# Script to stop Writer-Nexus Suite services (BKA, Kronk, NOOS Hub, workers)
+# Script to stop Writer-Nexus Suite services (LiteLLM, BKA, Kronk, NOOS Hub, workers)
 
 echo "Stopping Writer-Nexus Suite..."
+
+# Stop LiteLLM proxy (Port 4000)
+if fuser 4000/tcp >/dev/null 2>&1; then
+    echo "Stopping LiteLLM proxy (Port 4000)..."
+    fuser -k 4000/tcp
+else
+    echo "LiteLLM proxy is not running."
+fi
 
 # Stop BKA (Port 8008)
 if fuser 8008/tcp >/dev/null 2>&1; then

@@ -1,0 +1,53 @@
+# LiteLLM Proxy — Writer's Nexus Suite
+# Porta: 4000 — endpoint OpenAI-compatible: http://127.0.0.1:4000/v1
+#
+# Routing:
+#   model_name "default"       → ollama/adam:latest           (chat IODA, classificazione intent)
+#   model_name "creative"      → ollama/gemma4:26b            (scrittura creativa Kronk)
+#   model_name "agent"         → ollama/granite4.1:8b         (tool-calling IODA AgentCore)
+#   model_name "fast-local"    → ollama/glm-4.7-flash:latest  (analisi rapida BKA)
+#   model_name "cloud-smart"   → anthropic/claude-sonnet-4-6  (compiti hard, su richiesta)
+#   model_name "cloud-fast"    → anthropic/claude-haiku-4-5-20251001 (cloud economico)
+#
+# Uso: litellm --config litellm_config.yaml --port 4000
+# Switch locale→cloud: cambia model_name nella chiamata, zero riavvii.
+
+model_list:
+  - model_name: default
+    litellm_params:
+      model: ollama/adam:latest
+      api_base: http://127.0.0.1:11434
+
+  - model_name: creative
+    litellm_params:
+      model: ollama/gemma4:26b
+      api_base: http://127.0.0.1:11434
+
+  - model_name: agent
+    litellm_params:
+      model: ollama/granite4.1:8b
+      api_base: http://127.0.0.1:11434
+
+  - model_name: fast-local
+    litellm_params:
+      model: ollama/glm-4.7-flash:latest
+      api_base: http://127.0.0.1:11434
+
+  - model_name: cloud-smart
+    litellm_params:
+      model: anthropic/claude-sonnet-4-6
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  - model_name: cloud-fast
+    litellm_params:
+      model: anthropic/claude-haiku-4-5-20251001
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+litellm_settings:
+  drop_params: true          # ignora parametri sconosciuti (keep_alive, num_ctx, ecc.)
+  request_timeout: 300
+  telemetry: false           # no ping a litellm.ai
+
+general_settings:
+  # master_key non impostata = auth disabilitata (solo localhost, no DB necessario)
+  store_model_in_db: false

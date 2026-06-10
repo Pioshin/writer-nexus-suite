@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # writer-nexus-suite Unified Start Script
-# Launches: BKA, Kronk, NOOS Hub, BKA worker, KRONK worker, StoryForge worker (optional)
+# Launches: LiteLLM proxy, BKA, Kronk, NOOS Hub, BKA worker, KRONK worker, StoryForge worker (optional)
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_DIR="$ROOT_DIR/logs"
@@ -23,8 +23,27 @@ else
     echo "Using Global Python Environment: $GLOBAL_PYTHON"
 fi
 
+# 0. Start LiteLLM proxy (Port 4000) — must be first, everything routes through it
+LITELLM_BIN="$HOME/.venv/workspace/bin/litellm"
+if [ -f "$LITELLM_BIN" ]; then
+    echo "[0/7] Starting LiteLLM proxy on port 4000..."
+    fuser -k 4000/tcp 2>/dev/null
+    nohup "$LITELLM_BIN" --config "$ROOT_DIR/litellm_config.yaml" --port 4000 \
+        > "$LOG_DIR/litellm.log" 2>&1 &
+    LITELLM_PID=$!
+    echo "LiteLLM proxy started (PID: $LITELLM_PID). Logs: $LOG_DIR/litellm.log"
+    sleep 2
+else
+    echo "[0/7] WARNING: LiteLLM not found at $LITELLM_BIN — skipping proxy."
+    echo "       Services will call Ollama directly as fallback."
+fi
+
+# Export LLM URLs for all child processes
+export LLM_PROXY_URL="http://127.0.0.1:4000/v1"
+export NOOS_OLLAMA_URL="http://127.0.0.1:4000"
+
 # 1. Start BKA (Port 8008)
-echo "[1/2] Starting BKA on port 8008..."
+echo "[1/7] Starting BKA on port 8008..."
 cd "$ROOT_DIR/bka"
 
 # Clear port 8008
@@ -34,7 +53,7 @@ BKA_PID=$!
 echo "BKA started (PID: $BKA_PID). Logs: $LOG_DIR/bka.log"
 
 # 2. Start Kronk (Port 5000)
-echo "[2/2] Starting Kronk on port 5000..."
+echo "[2/7] Starting Kronk on port 5000..."
 cd "$ROOT_DIR/kronk"
 
 # Clear port 5000
@@ -55,7 +74,7 @@ else
     set -a && source "$NOOS_DIR/.env" && set +a
 
     # 3. Start NOOS Hub (Port 9090)
-    echo "[3/5] Starting NOOS Hub on port 9090..."
+    echo "[3/7] Starting NOOS Hub on port 9090..."
     fuser -k 9090/tcp 2>/dev/null
     cd "$NOOS_DIR"
     nohup .venv/bin/uvicorn noos.main:app --host 0.0.0.0 --port 9090 > "$LOG_DIR/noos.log" 2>&1 &
