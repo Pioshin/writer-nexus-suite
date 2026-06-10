@@ -155,7 +155,7 @@ def generate_synopsis_toon(post_num, riassunto):
     return '\n'.join(lines)
 
 
-def to_bibbia_format(characters, world_elements, synopses=None, title=""):
+def to_bibbia_format(characters, world_elements, synopses=None, title="", glossary=None):
     """
     Genera contenuto TOON completo formattato per BIBBIA.
     Restituisce un dizionario con 'dna' e 'sinossi'.
@@ -218,6 +218,20 @@ def to_bibbia_format(characters, world_elements, synopses=None, title=""):
                 dna_sections.append(f"  + {slug}: {name}")
                 dna_sections.append(f"    | desc: {context}")
             dna_sections.append("")
+    
+            dna_sections.append("")
+
+    # Glossary -> DNA
+    if glossary:
+        dna_sections.append("@ GLOSSARIO")
+        for item in glossary:
+            term = item.get('term', '')
+            if term:
+                # Basic cleanup
+                term = term.strip()
+                ctx = item.get('context', '').strip()
+                dna_sections.append(f"  + {term}: {ctx}")
+        dna_sections.append("")
     
     # Synopses -> CRONACA (separata)
     if synopses:

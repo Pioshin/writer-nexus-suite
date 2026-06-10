@@ -99,20 +99,70 @@ class LLMClient:
         print(f"WARN: JSON extraction failed for: {text[:200]}...")
         return []
 
-    def _make_request(self, payload, stream=False, call_type="chat"):
+    def _make_request(self, payload, stream=False, call_type="chat", force_json=False):
         """Internal dispatcher for providers."""
         if self.provider == "ollama":
             url = self.ollama_api_chat if call_type == "chat" else self.ollama_api_generate
-            # Add Ollama specific options
-            if "options" not in payload:
-                payload["options"] = {"num_ctx": self.ctx, "temperature": 0.7}
-            payload["keep_alive"] = self.keep_alive
             
-            response = requests.post(url, json=payload, stream=stream, timeout=self.timeout)
-            response.raise_for_status()
+            # Parametri Ollama: rispettano le impostazioni dell'utente (shared config)
+            options = {
+                "num_ctx": int(self.ctx or 32768),
+                "num_predict": 8192,
+                "temperature": 0.7
+            }
+            payload["options"] = options
+            payload["keep_alive"] = self.keep_alive or "5m"
             
-            if stream: return response
-            return response.json()
+            if force_json:
+                payload["format"] = "json"
+                # Disabilita thinking per Gemma4 in format=json (previene loop/blocchi)
+                payload["think"] = False
+                
+            try:
+                response = requests.post(url, json=payload, stream=True, timeout=self.timeout)
+                response.raise_for_status()
+            except requests.exceptions.ConnectionError:
+                raise Exception("Ollama non raggiungibile. Assicurati che sia in esecuzione (ollama serve).")
+            except requests.exceptions.Timeout:
+                raise Exception(f"Timeout di connessione a Ollama dopo {self.timeout}s.")
+            
+            if stream: 
+                return response
+            
+            # Accumuliamo content e thinking in modo sincrono per gestire il fallback Gemma4
+            full_content = ""
+            thinking_content = ""
+            for line in response.iter_lines():
+                if not line:
+                    continue
+                try:
+                    chunk = json.loads(line.decode('utf-8'))
+                except Exception:
+                    continue
+                
+                if call_type == "chat":
+                    msg = chunk.get("message", {})
+                    full_content += msg.get("content", "")
+                    thinking_content += msg.get("thinking", "")
+                else:
+                    full_content += chunk.get("response", "")
+                    thinking_content += chunk.get("thinking", "")
+                
+                if chunk.get("done"):
+                    break
+            
+            # Gemma4: se content non contiene JSON ma thinking sì, usa thinking come fallback
+            content_has_json = "{" in full_content or "[" in full_content
+            thinking_has_json = "{" in thinking_content or "[" in thinking_content
+            
+            if not content_has_json and thinking_has_json:
+                print(f"DEBUG: content non-JSON, uso thinking come fallback ({len(thinking_content)} chars)")
+                full_content = thinking_content
+                
+            if call_type == "chat":
+                return {"message": {"content": full_content}}
+            else:
+                return {"response": full_content}
 
         elif self.provider == "openai":
             # OpenAI Compatible (or real OpenAI)
@@ -124,7 +174,6 @@ class LLMClient:
                 "model": self.model,
                 "messages": payload.get("messages", []),
                 "stream": stream,
-                # "max_tokens": self.ctx  # Not always safe to send context length as max tokens
             }
             if "prompt" in payload: # Handle generate vs chat
                  openai_payload["messages"] = [{"role": "user", "content": payload["prompt"]}]
@@ -189,12 +238,14 @@ class LLMClient:
 
         raise ValueError(f"Unknown provider: {self.provider}")
 
-    def chat(self, messages, stream=False):
+    def chat(self, messages, stream=False, force_json=False):
         """Generic chat method."""
+        # Ricarica config condivisa: cambiamenti fatti da IODA o altre app si propagano
+        self.load_config()
         payload = {"model": self.model, "messages": messages, "stream": stream}
         
         try:
-            response = self._make_request(payload, stream=stream, call_type="chat")
+            response = self._make_request(payload, stream=stream, call_type="chat", force_json=force_json)
             
             if stream:
                 return self._handle_stream(response)
@@ -205,9 +256,9 @@ class LLMClient:
             print(f"LLM Error: {e}")
             raise
 
-    def completion(self, prompt, stream=False):
+    def completion(self, prompt, stream=False, force_json=False):
         """Generic completion (uses chat internally for most modern LLMs)."""
-        return self.chat([{"role": "user", "content": prompt}], stream=stream)
+        return self.chat([{"role": "user", "content": prompt}], stream=stream, force_json=force_json)
 
     def _parse_response(self, response_data):
         """Normalize response to string."""
@@ -216,7 +267,6 @@ class LLMClient:
         elif self.provider == "openai":
             return response_data["choices"][0]["message"]["content"]
         elif self.provider == "gemini":
-            # Gemini JSON structure is complex
             try:
                 return response_data["candidates"][0]["content"]["parts"][0]["text"]
             except:
@@ -234,7 +284,11 @@ class LLMClient:
                 line_text = line.decode('utf-8')
                 if self.provider == "ollama":
                     body = json.loads(line_text)
-                    yield body.get("message", {}).get("content", "")
+                    msg = body.get("message", {})
+                    content_token = msg.get("content", "")
+                    thinking_token = msg.get("thinking", "")
+                    # Emetti thinking_token come fallback se non c'è content_token
+                    yield content_token or thinking_token
                 elif self.provider == "openai":
                     if line_text.startswith("data: "):
                         json_str = line_text[6:]
@@ -243,17 +297,10 @@ class LLMClient:
                         delta = body["choices"][0].get("delta", {})
                         yield delta.get("content", "")
                 elif self.provider == "gemini":
-                    # Gemini returns full JSON array in valid JSON mode, but streaming returns 'data: ' ? No, standard REST stream
-                    # Actually Gemini REST stream returns JSON objects separated or in array
-                    # This is tricky without SDK. Assuming standard SSE or NDJSON matching requests
-                    # Typically standard REST requests.post(stream=True) gives raw chunks
-                    # We might need to accumulate valid JSON for Gemini
-                     # Simplified for now assuming NDJSON-like behavior or strict chunks
                     if line_text.startswith("data:"): # SSE
                          body = json.loads(line_text[5:])
                          yield body["candidates"][0]["content"]["parts"][0]["text"]
                     else:
-                         # Attempt raw parse
                          try:
                              body = json.loads(line_text)
                              yield body["candidates"][0]["content"]["parts"][0]["text"]
@@ -265,7 +312,6 @@ class LLMClient:
                         if body["type"] == "content_block_delta":
                             yield body["delta"]["text"]
             except Exception as e:
-                # print(f"Stream decode error: {e}")
                 pass
 
     def check_connection(self):
@@ -297,7 +343,6 @@ class LLMClient:
                 data = response.json()
                 return [m["id"] for m in data.get("data", [])]
             except Exception as e:
-                # Fallback per endpoint non standard
                 raise Exception(f"OpenAI Error: {e}")
 
         elif self.provider == "gemini":
@@ -306,7 +351,6 @@ class LLMClient:
                 response = requests.get(url, timeout=10)
                 response.raise_for_status()
                 data = response.json()
-                # Filtra solo modelli che supportano generateContent
                 models = []
                 for m in data.get("models", []):
                     if "generateContent" in m.get("supportedGenerationMethods", []):
@@ -316,8 +360,6 @@ class LLMClient:
                 raise Exception(f"Gemini Error: {e}")
 
         elif self.provider == "claude":
-            # Anthropic non ha un endpoint list_models pubblico semplice.
-            # Ritorniamo lista statica dei modelli attuali.
             return [
                 "claude-3-opus-20240229",
                 "claude-3-sonnet-20240229",
@@ -326,4 +368,4 @@ class LLMClient:
                 "claude-2.0"
             ]
 
-        return [self.model] # Fallback
+        return [self.model]

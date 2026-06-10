@@ -14,3 +14,4 @@ logs/
 kronk/WORK/*.mp4
 kronk/WORK/*.bin
 bka/backend/*.log
+*.bak

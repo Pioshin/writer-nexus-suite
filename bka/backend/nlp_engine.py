@@ -168,4 +168,80 @@ class NLPEngine:
 
         return results
 
+        return results
+
+    def extract_glossary_terms(self, text, existing_terms=None):
+        """
+        Identifies potential neologisms/glossary terms.
+        Focuses on capitalized words that are NOT recognized as standard entities
+        and are NOT in common stopword lists.
+        """
+        if existing_terms is None:
+            existing_terms = set()
+            
+        doc = self.nlp(text)
+        candidates = {}
+        
+        # 1. Collect all capitalized tokens that are NOT entities
+        # (Spacy entities are already handled, we want stuff Spacy might miss OR misclassify)
+        # Actually, if Spacy thinks it's an ORG or PER, we usually extract it there.
+        # But "Neologisms" might be objects names, sci-fi terms, etc.
+        
+        # known_entities = {ent.text for ent in doc.ents} 
+        # Better: Iterate tokens
+        
+        for token in doc:
+            word = token.text
+            
+            # Filter 1: Must be Alpha, Length > 3
+            if not word.isalpha() or len(word) < 3:
+                continue
+                
+            # Filter 2: Must be Capitalized (simple heuristic for proper nouns/neologisms)
+            if not word[0].isupper():
+                continue
+                
+            # Filter 3: Skip Stopwords
+            if token.is_stop:
+                continue
+                
+            # Filter 4: Skip start of sentence?
+            # If it's the start of a sentence AND it's a common word, skip.
+            # If it's start of sentence but unknown, keep.
+            if token.is_sent_start:
+                 # Check if it looks like a common word (PROPN vs NOUN/VERB)
+                 # Spacy POS tagging might be wrong for neologisms.
+                 # If Spacy says PROPN, good candidate.
+                 if token.pos_ != "PROPN":
+                     continue
+
+            # Filter 5: Skip already existing terms
+            if word in existing_terms:
+                continue
+
+            # Filter 6: Skip very common names (Mario, Luigi)? 
+            # Hard without external list.
+            
+            # Add to candidates
+            if word not in candidates:
+                candidates[word] = {"count": 1, "context": []}
+            else:
+                candidates[word]["count"] += 1
+                
+            # Capture context
+            if len(candidates[word]["context"]) < 3:
+                 candidates[word]["context"].append(token.sent.text.strip().replace('\n', ' ')[:150])
+
+        # Filter by Frequency (> 2) to avoid typos
+        results = []
+        for word, data in candidates.items():
+            if data["count"] >= 3:
+                results.append({
+                    "term": word,
+                    "count": data["count"],
+                    "context": " ... ".join(data["context"])
+                })
+        
+        return results
+
 nlp_engine = NLPEngine()

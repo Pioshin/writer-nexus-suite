@@ -99,12 +99,15 @@ async def analyze_text(file: UploadFile = File(...)):
         
         # Analyze text
         characters = nlp_engine.extract_characters(text)
+        characters = nlp_engine.extract_characters(text)
         world_elements = nlp_engine.extract_world_elements(text)
+        glossary = nlp_engine.extract_glossary_terms(text)
         
         return JSONResponse(content={
             "filename": file.filename,
             "characters": characters,
             "world": world_elements,
+            "glossary": glossary,
             "text": text,  # Include text for synopsis generation
             "message": "Analysis processing complete"
         })
@@ -180,6 +183,16 @@ async def refine_world_analysis(data: dict):
     refined_list = ollama_client.refine_world_elements(world_list)
     
     return JSONResponse(content={"world": refined_list})
+
+@app.post("/refine_glossary")
+async def refine_glossary_analysis(data: dict):
+    # Expects {"glossary": [...]}
+    glossary_list = data.get("glossary", [])
+    print(f"Received GLOSSARY refinement request for {len(glossary_list)} items")
+    
+    refined_list = ollama_client.refine_glossary(glossary_list)
+    
+    return JSONResponse(content={"glossary": refined_list})
 
 @app.post("/api/synopsis")
 async def generate_synopsis(data: dict):
@@ -287,10 +300,11 @@ async def export_toon(data: dict):
     """Export analysis data to TOON format."""
     characters = data.get("characters", [])
     world = data.get("world", [])
+    glossary = data.get("glossary", [])
     synopses = data.get("synopses", [])
     title = data.get("title", "Untitled")
     
-    bibbia_data = toon.to_bibbia_format(characters, world, synopses, title)
+    bibbia_data = toon.to_bibbia_format(characters, world, synopses, title, glossary=glossary)
     # For a single file export, we combine them
     toon_content = bibbia_data["dna"] + "\n\n" + (bibbia_data["sinossi"] if synopses else "")
     
@@ -311,12 +325,13 @@ async def send_to_bibbia(data: dict):
     
     characters = data.get("characters", [])
     world = data.get("world", [])
+    glossary = data.get("glossary", [])
     synopses = data.get("synopses", [])
     title = data.get("title", "BookAnalyzer Export")
     sandbox_url = data.get("sandbox_url", "http://127.0.0.1:5000")
     
     # Genera contenuto BIBBIA
-    bibbia_data = toon.to_bibbia_format(characters, world, synopses, title)
+    bibbia_data = toon.to_bibbia_format(characters, world, synopses, title, glossary=glossary)
     dna_content = bibbia_data["dna"]
     sinossi_content = bibbia_data["sinossi"]
     
@@ -507,4 +522,4 @@ async def merge_results_endpoint(data: dict):
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8008, reload=True)

@@ -1,9 +1,12 @@
 import json
 import time
+import re
 from llm_client import LLMClient
 
 class OllamaClient:
-    def __init__(self, model="gpt-oss:latest", base_url="http://127.0.0.1:11434", provider="ollama", api_key="", ctx=32768, timeout=180, keep_alive="5m"):
+    def __init__(self, model=None, base_url=None, provider=None, api_key=None, ctx=None, timeout=None, keep_alive=None):
+        # Defaults a None: la config viene caricata da UnifiedConfigManager dentro LLMClient.
+        # Passare valori espliciti solo per override manuali (rari).
         self.client = LLMClient(
             provider=provider,
             model=model,
@@ -34,15 +37,87 @@ class OllamaClient:
     def keep_alive(self): return self.client.keep_alive
 
     def extract_json(self, text):
-        return self.client.extract_json(text)
+        """Estrae JSON con fallback progressivi e riparazione automatica (StoryForge style)."""
+        # Pulizia iniziale markdown
+        cleaned = re.sub(r"```(?:json)?\s*", "", text).strip().rstrip("`").strip()
+        
+        # Tentativo 1: parsing diretto
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            pass
+            
+        # Isola il primo blocco JSON { ... } oppure [ ... ]
+        i_brace  = cleaned.find("{")
+        i_brack  = cleaned.find("[")
+        start = min(
+            i_brace  if i_brace  != -1 else len(cleaned),
+            i_brack  if i_brack  != -1 else len(cleaned),
+        )
+        end = max(cleaned.rfind("}"), cleaned.rfind("]")) + 1
+        
+        parsed_text = cleaned
+        if start < end:
+            parsed_text = cleaned[start:end]
+            
+        # Tentativi successivi sul blocco isolato
+        for candidate in [parsed_text, cleaned]:
+            # Tentativo 2: rimuovi virgole finali
+            fixed = re.sub(r",\s*([}\]])", r"\1", candidate)
+            try:
+                return json.loads(fixed)
+            except json.JSONDecodeError:
+                pass
 
-    def refine_with_streaming(self, prompt, on_token=None):
+            # Tentativo 3: commenti stile JS
+            fixed = re.sub(r"//[^\n\"]*", "", fixed)
+            try:
+                return json.loads(fixed)
+            except json.JSONDecodeError:
+                pass
+
+            # Tentativo 4: commenti multilinea
+            fixed = re.sub(r"/\*.*?\*/", "", fixed, flags=re.DOTALL)
+            fixed = re.sub(r",\s*([}\]])", r"\1", fixed)
+            try:
+                return json.loads(fixed)
+            except json.JSONDecodeError:
+                pass
+
+        # Tentativo 5: Riparazione JSON troncato (chiusura intelligente delle parentesi aperte)
+        try:
+            patched = parsed_text.strip()
+            patched = re.sub(r",\s*$", "", patched)
+            open_braces = patched.count("{") - patched.count("}")
+            open_brackets = patched.count("[") - patched.count("]")
+            # L'ordine corretto di chiusura è prima le graffe '}' poi le quadre ']'
+            patched += "}" * max(0, open_braces) + "]" * max(0, open_brackets)
+            return json.loads(patched)
+        except Exception as e:
+            print(f"WARN: JSON parse/repair failed: {e}\nRaw response: {text[:300]}")
+            
+        # Fallback finale usando il vecchio regex search su tutto il testo
+        match = re.search(r'\[\s*\{[\s\S]*?\}\s*\]', text)
+        if match:
+            try: return json.loads(match.group())
+            except: pass
+        
+        match = re.search(r'\{[\s\S]*?\}', text)
+        if match:
+            try:
+                result = json.loads(match.group())
+                return [result] if isinstance(result, dict) else result
+            except: pass
+            
+        return []
+
+    def refine_with_streaming(self, prompt, on_token=None, force_json=False):
         """
         Esegue una richiesta LLM con streaming.
         """
         full_response = ""
         try:
-            stream = self.client.chat([{"role": "user", "content": prompt}], stream=True)
+            stream = self.client.chat([{"role": "user", "content": prompt}], stream=True, force_json=force_json)
             for token in stream:
                 full_response += token
                 if on_token:
@@ -62,7 +137,7 @@ class OllamaClient:
         
         batch_size = 20
         refined_results = []
-        total_batches = (len(char_list) - 1) // batch_size + 1
+        total_batches = (len(char_list) - 1) // batch_size + 1 if char_list else 0
         
         for i in range(0, len(char_list), batch_size):
             batch = char_list[i : i + batch_size]
@@ -88,14 +163,14 @@ class OllamaClient:
             2. MERGE: Combine duplicates/variations. 
                - Example: "Hector", "Hector Starborn", "Hector 'no-one' Starborn" -> MUST becomes SINGLE entry "Hector Starborn".
                - Merge roles and contexts.
-            7. ROLES: Infer role from context.
+            3. ROLES: Infer role from context.
             
             IMPORTANT:
             - OUTPUT VALUES (role, context) MUST BE IN ITALIAN.
             - Even if keys are English, the content MUST be Italian.
 
             OUTPUT FORMAT:
-            Return ONLY a raw JSON list of objects. No markdown.
+            Return ONLY a raw JSON list of objects. No markdown, no wrapping text.
             Example: [ {{"name": "Renzo", "role": "Sposo"}} ]
             """
             
@@ -106,9 +181,12 @@ class OllamaClient:
                     if on_progress:
                         on_progress({"type": "token", "token": token})
                 
-                response_text = self.refine_with_streaming(prompt, on_token=collect_token)
+                response_text = self.refine_with_streaming(prompt, on_token=collect_token, force_json=True)
                 
                 batch_result = self.extract_json(response_text)
+                if isinstance(batch_result, dict):
+                    batch_result = [batch_result]
+                
                 if isinstance(batch_result, list):
                     refined_results.extend(batch_result)
                     if on_progress:
@@ -132,7 +210,7 @@ class OllamaClient:
         # 1. SORT to ensure duplicates (Hector, Hector Starborn) are adjacent
         char_list.sort(key=lambda x: x.get("name", "").lower())
         
-        batch_size = 20 # Increased context for better merging
+        batch_size = 20
         refined_results = []
         
         for i in range(0, len(char_list), batch_size):
@@ -158,13 +236,16 @@ class OllamaClient:
             - Even if keys are English, the content MUST be Italian.
 
             OUTPUT FORMAT:
-            Return ONLY a raw JSON list of objects. No markdown.
+            Return ONLY a raw JSON list of objects. No markdown, no wrapping text.
             Example: [ {{"name": "Renzo", "role": "Sposo"}} ]
             """
             
             try:
-                response_text = self.client.completion(prompt)
+                response_text = self.client.completion(prompt, force_json=True)
                 batch_result = self.extract_json(response_text)
+                
+                if isinstance(batch_result, dict):
+                    batch_result = [batch_result]
                 
                 if isinstance(batch_result, list):
                     refined_results.extend(batch_result)
@@ -212,12 +293,17 @@ class OllamaClient:
             - OUTPUT VALUES (context, description) MUST BE IN ITALIAN.
 
             OUTPUT FORMAT (JSON List):
+            Return ONLY a raw JSON list of objects. No markdown, no wrapping text.
             [ {{"name": "Atlantis", "category": "Place", "context": "Città perduta..."}} ]
             """
             
             try:
-                response_text = self.client.completion(prompt)
+                response_text = self.client.completion(prompt, force_json=True)
                 batch_result = self.extract_json(response_text)
+                
+                if isinstance(batch_result, dict):
+                    batch_result = [batch_result]
+                
                 if isinstance(batch_result, list):
                     refined_results.extend(batch_result)
                 else:
@@ -259,16 +345,20 @@ class OllamaClient:
             - OUTPUT VALUES (definition) MUST BE IN ITALIAN.
             
             OUTPUT FORMAT (JSON List):
+            Return ONLY a raw JSON list of objects. No markdown, no wrapping text.
             [ {{"term": "Lightsaber", "definition": "Arma elegante, una lama di energia..."}} ]
             """
             
             try:
-                response_text = self.client.completion(prompt)
+                response_text = self.client.completion(prompt, force_json=True)
                 batch_result = self.extract_json(response_text)
+                
+                if isinstance(batch_result, dict):
+                    batch_result = [batch_result]
+                    
                 if isinstance(batch_result, list):
                     refined_results.extend(batch_result)
                 else:
-                    # If LLM fails to return list, skip this batch to avoid noise
                     print(f"WARN: Glossary batch returned invalid format: {type(batch_result)}")
             except Exception as e:
                 print(f"ERROR Glossary Batch: {e}")
@@ -309,12 +399,12 @@ class OllamaClient:
             4. Non usare spoiler per eventi futuri
             
             FORMATO OUTPUT:
-            Restituisci SOLO un JSON con questa struttura:
+            Restituisci SOLO un JSON con questa struttura. No markdown, no wrapping text.
             {{"post_number": {i+1}, "title": "Titolo breve", "summary": "Il riassunto..."}}
             """
             
             try:
-                response_text = self.client.completion(prompt)
+                response_text = self.client.completion(prompt, force_json=True)
                 parsed = self.extract_json(response_text)
                 
                 if isinstance(parsed, list) and len(parsed) > 0:
@@ -337,11 +427,9 @@ class OllamaClient:
         
         return synopses
 
-
     def analyze_chunk(self, chunk, mode="characters"):
         """
         Analizza un singolo chunk di testo.
-        mode: 'characters' o 'world'
         """
         if mode == "characters":
             prompt = f"""
@@ -360,6 +448,7 @@ class OllamaClient:
             - OUTPUT VALUES (role, context) MUST BE IN ITALIAN.
             
             OUTPUT (JSON List):
+            Return ONLY a raw JSON list of objects. No markdown, no wrapping text.
             [ {{"name": "Nome", "role": "Ruolo", "context": "Breve frase contesto"}} ]
             """
         elif mode == "synopsis":
@@ -376,6 +465,7 @@ class OllamaClient:
             3. Indica l'ambientazione se rilevante.
             
             FORMATO OUTPUT (JSON):
+            Return ONLY a raw JSON object. No markdown, no wrapping text.
             {{"title": "Titolo breve", "summary": "Il riassunto..."}}
             """
         elif mode == "world":
@@ -392,6 +482,7 @@ class OllamaClient:
             - OUTPUT VALUES (context) MUST BE IN ITALIAN.
             
             OUTPUT (JSON List):
+            Return ONLY a raw JSON list of objects. No markdown, no wrapping text.
             [ {{"name": "Nome", "category": "Categoria", "context": "Descrizione"}} ]
             """
         else: # glossary
@@ -411,12 +502,16 @@ class OllamaClient:
             - OUTPUT VALUES (definition, context) MUST BE IN ITALIAN.
             
             OUTPUT (JSON List):
+            Return ONLY a raw JSON list of objects. No markdown, no wrapping text.
             [ {{"term": "Termine", "definition": "Definizione", "context": "Contesto"}} ]
             """
             
         try:
-            response_text = self.client.chat([{"role": "user", "content": prompt}])
-            return self.extract_json(response_text)
+            response_text = self.client.chat([{"role": "user", "content": prompt}], force_json=True)
+            res = self.extract_json(response_text)
+            if mode != "synopsis" and isinstance(res, dict):
+                res = [res]
+            return res
         except Exception as e:
             print(f"Chunk Analysis Error: {e}")
             return []
@@ -425,11 +520,6 @@ class OllamaClient:
         """
         Consolida una lista di risultati grezzi (unendo duplicati).
         """
-        # Se la lista è troppo lunga, processiamola a batch anche qui o chiediamo un merge intelligente
-        # Per ora assumiamo che rientri nel contesto (o facciamo map-reduce se necessario).
-        
-        # Semplificazione: inviamo tutto all'LLM.
-        
         prompt = f"""
         Sei un Editor esperto. 
         Ho una lista di {mode} estratti da vari capitoli. Ci sono duplicati e variazioni (es. "John", "John Doe").
@@ -440,23 +530,24 @@ class OllamaClient:
         COMPITI:
         1. Unifica i duplicati (scegli il nome più completo).
         2. Somma eventuali conteggi (se presenti) o stima importanza.
-        2. Somma eventuali conteggi (se presenti) o stima importanza.
         3. Unisci i contesti per creare una descrizione coerente.
 
         IMPORTANT:
         - OUTPUT VALUES (role, context) MUST BE IN ITALIAN.
         
         OUTPUT (JSON List):
+        Return ONLY a raw JSON list of objects. No markdown, no wrapping text.
         Restituisci una lista pulita e consolidata.
         """
         
         try:
-            response_text = self.client.chat([{"role": "user", "content": prompt}])
-            return self.extract_json(response_text)
+            response_text = self.client.chat([{"role": "user", "content": prompt}], force_json=True)
+            res = self.extract_json(response_text)
+            if isinstance(res, dict):
+                res = [res]
+            return res
         except Exception as e:
             print(f"Merge Error: {e}")
-            return results_list # Fallback: restituisci non unificato
+            return results_list
 
 ollama_client = OllamaClient()
-
-
