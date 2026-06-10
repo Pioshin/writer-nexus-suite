@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # writer-nexus-suite Unified Start Script
-# Launches: BKA, Kronk, NOOS Hub, BKA worker, KRONK worker
+# Launches: BKA, Kronk, NOOS Hub, BKA worker, KRONK worker, StoryForge worker (optional)
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_DIR="$ROOT_DIR/logs"
@@ -66,21 +66,38 @@ else
     sleep 3
 
     # 4. Start BKA Worker
-    echo "[4/5] Starting BKA Worker..."
+    echo "[4/6] Starting BKA Worker..."
     cd "$WORKERS_DIR"
     NOOS_HUB_URL=http://127.0.0.1:9090 \
     NOOS_WORKER_TOKEN="$NOOS_WORKER_BKA_TOKEN" \
+    BKA_URL=http://127.0.0.1:8008 \
+    KRONK_URL=http://127.0.0.1:5000 \
     nohup "$GLOBAL_PYTHON" -m workers.bka.main > "$LOG_DIR/worker_bka.log" 2>&1 &
     WORKER_BKA_PID=$!
     echo "BKA Worker started (PID: $WORKER_BKA_PID). Logs: $LOG_DIR/worker_bka.log"
 
     # 5. Start KRONK Worker
-    echo "[5/5] Starting KRONK Worker..."
+    echo "[5/6] Starting KRONK Worker..."
     NOOS_HUB_URL=http://127.0.0.1:9090 \
     NOOS_WORKER_TOKEN="$NOOS_WORKER_KRONK_TOKEN" \
+    KRONK_URL=http://127.0.0.1:5000 \
     nohup "$GLOBAL_PYTHON" -m workers.kronk.main > "$LOG_DIR/worker_kronk.log" 2>&1 &
     WORKER_KRONK_PID=$!
     echo "KRONK Worker started (PID: $WORKER_KRONK_PID). Logs: $LOG_DIR/worker_kronk.log"
+
+    # 6. Start StoryForge Worker (only if SF_PASSWORD is set)
+    if [ -n "$SF_PASSWORD" ] && [ -n "$NOOS_WORKER_SF_TOKEN" ]; then
+        echo "[6/6] Starting StoryForge Worker..."
+        NOOS_HUB_URL=http://127.0.0.1:9090 \
+        NOOS_WORKER_TOKEN="$NOOS_WORKER_SF_TOKEN" \
+        SF_URL=http://127.0.0.1:8000 \
+        SF_PASSWORD="$SF_PASSWORD" \
+        nohup "$GLOBAL_PYTHON" -m workers.storyforge.main > "$LOG_DIR/worker_storyforge.log" 2>&1 &
+        WORKER_SF_PID=$!
+        echo "StoryForge Worker started (PID: $WORKER_SF_PID). Logs: $LOG_DIR/worker_storyforge.log"
+    else
+        echo "[6/6] StoryForge Worker skipped (SF_PASSWORD or NOOS_WORKER_SF_TOKEN not set)"
+    fi
 fi
 
 cd "$ROOT_DIR"
