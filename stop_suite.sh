@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Script to stop Writer-Nexus Suite services (Kronk and BKA)
+# Script to stop Writer-Nexus Suite services (BKA, Kronk, NOOS Hub, workers)
 
-echo "🛑 Stopping Writer-Nexus Suite..."
+echo "Stopping Writer-Nexus Suite..."
 
 # Stop BKA (Port 8008)
 if fuser 8008/tcp >/dev/null 2>&1; then
@@ -20,7 +20,26 @@ else
     echo "Kronk is not running."
 fi
 
-echo "✅ All services stopped."
+# Stop NOOS Hub (Port 9090)
+if fuser 9090/tcp >/dev/null 2>&1; then
+    echo "Stopping NOOS Hub (Port 9090)..."
+    fuser -k 9090/tcp
+else
+    echo "NOOS Hub is not running."
+fi
 
-# Optional: keep window open for 2 seconds to show message if run from terminal
+# Stop NOOS workers (by process name)
+if pkill -f "workers.bka.main" 2>/dev/null; then
+    echo "BKA Worker stopped."
+else
+    echo "BKA Worker is not running."
+fi
+
+if pkill -f "workers.kronk.main" 2>/dev/null; then
+    echo "KRONK Worker stopped."
+else
+    echo "KRONK Worker is not running."
+fi
+
+echo "All services stopped."
 sleep 2
