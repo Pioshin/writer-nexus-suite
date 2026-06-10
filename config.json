@@ -1,19 +1,21 @@
 {
     "ai": {
         "provider": "ollama",
-        "model": "adam:latest",
-        "url": "http://127.0.0.1:11434",
+        "model": "gemma4:26b",
+        "url": "http://localhost:11434",
         "api_key": "",
         "ctx": 32768,
         "timeout": 180,
-        "keep_alive": "5m"
+        "keep_alive": "5m",
+        "system_prompt": "",
+        "self_correction_model": "glm-4.7-flash:latest"
     },
     "ui": {
         "theme": "amber",
         "font_size": "medium"
     },
     "paths": {
-        "sandbox_root": "./sandbox",
+        "sandbox_root": "/home/pioshin/AI/Projects",
         "bibbia_root": "./bibbia"
     }
 }

@@ -4,10 +4,10 @@
 
 echo "🛑 Stopping Writer-Nexus Suite..."
 
-# Stop BKA (Port 8000)
-if fuser 8000/tcp >/dev/null 2>&1; then
-    echo "Stopping BKA (Port 8000)..."
-    fuser -k 8000/tcp
+# Stop BKA (Port 8008)
+if fuser 8008/tcp >/dev/null 2>&1; then
+    echo "Stopping BKA (Port 8008)..."
+    fuser -k 8008/tcp
 else
     echo "BKA is not running."
 fi
