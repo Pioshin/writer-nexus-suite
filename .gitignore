@@ -7,3 +7,10 @@ kronk/history/*.json
 bka/projects/*.json
 kronk/sandbox/
 
+# Logs e file binari runtime
+*.log
+*.log.*
+logs/
+kronk/WORK/*.mp4
+kronk/WORK/*.bin
+bka/backend/*.log
