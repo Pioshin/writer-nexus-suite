@@ -1,9 +1,0 @@
-{
-    "provider": "ollama",
-    "model": "adam:latest",
-    "base_url": "http://localhost:11434",
-    "api_key": "",
-    "ctx": 32768,
-    "timeout": 180,
-    "keep_alive": "5m"
-}

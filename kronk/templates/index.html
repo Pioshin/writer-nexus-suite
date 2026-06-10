@@ -101,6 +101,13 @@
             font-family: 'Fira Code', monospace !important;
         }
 
+        /* IODA Integration Fixes */
+        html,
+        body {
+            background-color: #000000 !important;
+            min-height: 100vh;
+        }
+
         /* Buttons (LCARS Pills) */
         button {
             background-color: var(--lcars-orange) !important;
@@ -235,11 +242,6 @@
                         title="BIBBIA - Contesto Narrativo">
                         📖
                     </button>
-                    <button onclick="alert('USA CONFIGURAZIONE SISTEMA (Tasto Destro)')"
-                        class="text-slate-400 hover:text-white transition-colors"
-                        title="Configurazione (Usa Tasto Destro)">
-                        ⚙️
-                    </button>
                     <div class="flex items-center gap-2 mr-4 border-r border-slate-700 pr-4">
                         <span class="text-[10px] text-slate-500">Aᴬ</span>
                         <input type="range" id="font-size-slider" min="12" max="24" value="16"
@@ -289,72 +291,7 @@
         </div>
     </main>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal"
-        class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center">
-        <div class="bg-scifi-800 border border-slate-700 rounded-xl p-6 w-full max-w-md shadow-2xl relative">
-            <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                ⚙️ Configurazione Ollama
-            </h3>
 
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1 pointer-events-none">Ollama API URL</label>
-                    <input type="text" id="setting-url"
-                        class="w-full bg-slate-900/50 border border-slate-700 rounded p-2 text-sm text-white focus:border-scifi-500 outline-none"
-                        placeholder="http://localhost:11434/api/chat">
-                </div>
-
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1 pointer-events-none">Model Name</label>
-                    <div class="flex gap-2">
-                        <select id="setting-model"
-                            class="flex-1 bg-slate-900/50 border border-slate-700 rounded p-2 text-sm text-white focus:border-scifi-500 outline-none appearance-none">
-                            <option value="llama3">llama3</option>
-                        </select>
-                        <button onclick="fetchModels()"
-                            class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white"
-                            title="Aggiorna lista modelli">↻</button>
-                        <button onclick="unloadModel()"
-                            class="px-2 py-1 bg-red-900/50 hover:bg-red-700 border border-red-800 rounded text-xs text-red-200"
-                            title="Scarica modello dalla memoria">🛑</button>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1 pointer-events-none">Sandbox Path</label>
-                    <input type="text" id="setting-path"
-                        class="w-full bg-slate-900/50 border border-slate-700 rounded p-2 text-sm text-white focus:border-scifi-500 outline-none"
-                        placeholder="./sandbox">
-                    <p class="text-[10px] text-slate-500 mt-1">Percorso locale assoluto o relativo</p>
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1 pointer-events-none">Keep Alive</label>
-                    <input type="text" id="setting-keep-alive"
-                        class="w-full bg-slate-900/50 border border-slate-700 rounded p-2 text-sm text-white focus:border-scifi-500 outline-none"
-                        placeholder="5m">
-                    <p class="text-[10px] text-slate-500 mt-1">Durata modello in memoria (es. 5m, 1h, -1 per sempre)</p>
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1 pointer-events-none">Context Window
-                        (num_ctx)</label>
-                    <input type="number" id="setting-context"
-                        class="w-full bg-slate-900/50 border border-slate-700 rounded p-2 text-sm text-white focus:border-scifi-500 outline-none"
-                        placeholder="32768">
-                    <p class="text-[10px] text-slate-500 mt-1">Dimensione finestra di contesto (es. 8192, 32768, 131072)
-                    </p>
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-end gap-3">
-                <button onclick="closeSettings()"
-                    class="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">Annulla</button>
-                <button onclick="saveSettings()"
-                    class="px-4 py-2 text-sm bg-scifi-500 hover:bg-blue-600 text-white rounded transition-colors shadow-lg shadow-blue-500/20">Salva</button>
-            </div>
-
-            <button onclick="closeSettings()" class="absolute top-4 right-4 text-slate-500 hover:text-white">✕</button>
-        </div>
-    </div>
 
     <!-- BIBBIA Modal -->
     <div id="bibbia-modal"
@@ -452,94 +389,7 @@
         </div>
     </div>
 
-    <!-- SETTINGS MODAL -->
-    <div id="settings-modal"
-        class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 backdrop-blur-sm">
-        <div class="bg-scifi-800 border border-slate-600 rounded-xl p-6 w-full max-w-md shadow-2xl shadow-scifi-500/20">
-            <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-2">
-                <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">⚙️ Configurazione AI</h3>
-                <button onclick="closeSettings()" class="text-slate-400 hover:text-white text-xl">✕</button>
-            </div>
 
-            <div class="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 mb-1">PROVIDER</label>
-                    <select id="setting-provider" onchange="toggleProviderFields()"
-                        class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
-                        <option value="ollama">Ollama (Locale)</option>
-                        <option value="openai">OpenAI Compatible</option>
-                        <option value="gemini">Google Gemini</option>
-                        <option value="claude">Anthropic Claude</option>
-                    </select>
-                </div>
-
-                <div id="group-api-key" class="hidden">
-                    <label class="block text-xs font-bold text-slate-400 mb-1">API KEY</label>
-                    <input type="password" id="setting-api-key" placeholder="sk-..."
-                        class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
-                </div>
-
-                <div id="group-url">
-                    <label class="block text-xs font-bold text-slate-400 mb-1">URL (Base)</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="setting-url" placeholder="http://127.0.0.1:11434"
-                            class="flex-1 bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
-                        <button onclick="testConnection()"
-                            class="px-3 py-2 bg-scifi-500/20 hover:bg-scifi-500 text-scifi-accent hover:text-white border border-scifi-500/50 rounded font-bold text-xs transition-all">
-                            Test
-                        </button>
-                    </div>
-                    <p id="connection-status-modal" class="text-[10px] mt-1 h-3"></p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 mb-1">MODELLO</label>
-                    <div class="flex gap-2">
-                        <select id="setting-model"
-                            class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
-                            <option value="gpt-oss:latest">gpt-oss:latest</option>
-                        </select>
-                        <input type="text" id="setting-model-input"
-                            class="hidden w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none"
-                            placeholder="Nome modello...">
-                        <button onclick="fetchModels()"
-                            class="p-2 bg-slate-700 hover:bg-slate-600 rounded text-slate-300"
-                            title="Refresh">↻</button>
-                        <button onclick="toggleModelInput()"
-                            class="p-2 bg-slate-700 hover:bg-slate-600 rounded text-slate-300"
-                            title="Toggle Input">✏️</button>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 mb-1">SANDBOX PATH</label>
-                    <input type="text" id="setting-path" value="./sandbox"
-                        class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-1">CONTESTO</label>
-                        <input type="number" id="setting-context" value="32768"
-                            class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-1">KEEP ALIVE</label>
-                        <input type="text" id="setting-keep-alive" value="5m"
-                            class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded p-2 focus:border-scifi-500 focus:outline-none">
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-700">
-                <button onclick="closeSettings()"
-                    class="px-4 py-2 text-slate-400 hover:text-white text-sm">Annulla</button>
-                <button onclick="saveSettings()"
-                    class="px-4 py-2 bg-scifi-500 hover:bg-scifi-400 text-white rounded font-bold shadow-lg shadow-scifi-500/20">Salva
-                    Configurazione</button>
-            </div>
-        </div>
-    </div>
 
     <script>
         const chatContainer = document.getElementById('chat-container');
@@ -577,141 +427,8 @@
             parent.classList.toggle('collapsed');
         }
 
-        // Settings elements
-        const settingsModal = document.getElementById('settings-modal');
-        const settingProvider = document.getElementById('setting-provider');
-        const settingApiKey = document.getElementById('setting-api-key');
-        const groupApiKey = document.getElementById('group-api-key');
-        const groupUrl = document.getElementById('group-url');
-        const settingUrlInput = document.getElementById('setting-url');
-        const settingModelSelect = document.getElementById('setting-model');
-        const settingModelInput = document.getElementById('setting-model-input');
-        const settingPathInput = document.getElementById('setting-path');
-        const settingKeepAliveInput = document.getElementById('setting-keep-alive');
-        const settingContextInput = document.getElementById('setting-context');
+        // Sandbox display path element
         const currentPathDisplay = document.getElementById('current-path-display');
-
-        // Defaults
-        const DEFAULTS = {
-            provider: 'ollama',
-            url: "http://localhost:11434",
-            model: "gpt-oss:latest",
-            path: "./sandbox",
-            keep_alive: "5m",
-            context: 32768,
-            api_key: ""
-        };
-
-        // Load Settings
-        function loadSettings() {
-            return {
-                provider: localStorage.getItem('ba_provider') || DEFAULTS.provider,
-                url: localStorage.getItem('ollama_url') || DEFAULTS.url,
-                model: localStorage.getItem('ollama_model') || DEFAULTS.model,
-                path: localStorage.getItem('sandbox_path') || DEFAULTS.path,
-                keep_alive: localStorage.getItem('ollama_keep_alive') || DEFAULTS.keep_alive,
-                context: parseInt(localStorage.getItem('ollama_context') || DEFAULTS.context),
-                api_key: localStorage.getItem('ba_api_key') || DEFAULTS.api_key
-            };
-        }
-
-        function toggleProviderFields() {
-            const provider = settingProvider.value;
-            if (provider === 'ollama') {
-                groupUrl.classList.remove('hidden');
-                groupApiKey.classList.add('hidden');
-            } else if (provider === 'openai') {
-                groupUrl.classList.remove('hidden');
-                groupApiKey.classList.remove('hidden');
-            } else {
-                groupUrl.classList.add('hidden');
-                groupApiKey.classList.remove('hidden');
-            }
-        }
-
-        function toggleModelInput() {
-            if (settingModelSelect.classList.contains('hidden')) {
-                settingModelSelect.classList.remove('hidden');
-                settingModelInput.classList.add('hidden');
-            } else {
-                settingModelSelect.classList.add('hidden');
-                settingModelInput.classList.remove('hidden');
-                settingModelInput.value = settingModelSelect.value;
-            }
-        }
-
-        function openSettings() {
-            const s = loadSettings();
-            settingProvider.value = s.provider;
-            settingUrlInput.value = s.url;
-            settingPathInput.value = s.path;
-            settingKeepAliveInput.value = s.keep_alive;
-            settingContextInput.value = s.context;
-            settingApiKey.value = s.api_key;
-
-            toggleProviderFields();
-
-            if (s.provider === 'ollama') {
-                fetchModels().then(() => {
-                    settingModelSelect.value = s.model;
-                });
-            } else {
-                // Manual input for online providers
-                settingModelInput.value = s.model;
-                settingModelSelect.classList.add('hidden');
-                settingModelInput.classList.remove('hidden');
-            }
-
-            settingsModal.classList.remove('hidden');
-        }
-
-        function closeSettings() {
-            settingsModal.classList.add('hidden');
-        }
-
-        async function saveSettings() {
-            const provider = settingProvider.value;
-            const url = settingUrlInput.value.trim() || DEFAULTS.url;
-            const path = settingPathInput.value.trim() || DEFAULTS.path;
-            const keep_alive = settingKeepAliveInput.value.trim() || DEFAULTS.keep_alive;
-            const context = parseInt(settingContextInput.value.trim()) || DEFAULTS.context;
-            const apiKey = settingApiKey.value.trim();
-
-            let model = settingModelSelect.value;
-            if (!settingModelInput.classList.contains('hidden')) {
-                model = settingModelInput.value.trim();
-            }
-
-            localStorage.setItem('ba_provider', provider);
-            localStorage.setItem('ollama_url', url);
-            localStorage.setItem('ollama_model', model);
-            localStorage.setItem('sandbox_path', path);
-            localStorage.setItem('ollama_keep_alive', keep_alive);
-            localStorage.setItem('ollama_context', context);
-            localStorage.setItem('ba_api_key', apiKey);
-
-            // Sync with Backend Global LLM
-            try {
-                await fetch('/api/config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        provider, url, model, api_key: apiKey, ctx: context, timeout: 180, keep_alive
-                    })
-                });
-            } catch (e) { console.error("Config sync failed", e); }
-
-            closeSettings();
-            refreshFiles();
-
-            statusIndicator.innerText = "Config updated";
-            setTimeout(() => { statusIndicator.innerText = "Ready"; }, 2000);
-        }
-
-        // Close on escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === "Escape") closeSettings();
-        });
 
         // Carica i file e le chat all'avvio
         refreshFiles();
@@ -864,11 +581,7 @@
 
         async function refreshFiles() {
             try {
-                const settings = loadSettings();
-                // Mostriamo il path corrente nel sidebar
-                // Nota: per ora è quello salvato, poi il backend ci darà conferma del path assoluto risolto
-
-                const res = await fetch(`/files?path=${encodeURIComponent(settings.path)}`);
+                const res = await fetch('/files');
                 const data = await res.json();
 
                 // Aggiorna display path con quello reale risolto dal server
@@ -958,20 +671,13 @@
             let fullText = "";
 
             try {
-                const settings = loadSettings();
-
                 const response = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         chat_id: currentChatId,
                         message: msg,
-                        history: chatHistory,
-                        ollama_url: settings.url,
-                        model: settings.model,
-                        sandbox_path: settings.path,
-                        keep_alive: settings.keep_alive,
-                        num_ctx: settings.context
+                        history: chatHistory
                     })
                 });
 
@@ -1049,10 +755,9 @@
         const previewContent = document.getElementById('preview-content');
 
         async function previewFile(filename) {
-            const settings = loadSettings();
             try {
                 // Fetch file content
-                const res = await fetch(`/read?filename=${encodeURIComponent(filename)}&path=${encodeURIComponent(settings.path)}`);
+                const res = await fetch(`/read?filename=${encodeURIComponent(filename)}`);
                 const data = await res.json();
 
                 if (data.error) {
@@ -1077,56 +782,7 @@
             previewPanel.classList.add('w-0');
         }
 
-        async function fetchModels() {
-            const settingModelSelect = document.getElementById('setting-model');
-            const currentModel = settingModelSelect.value || localStorage.getItem('ollama_model') || DEFAULT_MODEL;
-            const url = document.getElementById('setting-url').value;
 
-            try {
-                const res = await fetch(`/models?ollama_url=${encodeURIComponent(url)}`);
-                const data = await res.json();
-
-                if (data.models) {
-                    settingModelSelect.innerHTML = '';
-                    data.models.forEach(m => {
-                        const opt = document.createElement('option');
-                        opt.value = m.name;
-                        opt.innerText = m.name;
-                        if (m.name === currentModel) opt.selected = true;
-                        settingModelSelect.appendChild(opt);
-                    });
-
-                    // Se il modello corrente non è in lista, aggiungilo comunque per non rompere
-                    if (![...settingModelSelect.options].some(o => o.value === currentModel)) {
-                        const opt = document.createElement('option');
-                        opt.value = currentModel;
-                        opt.innerText = currentModel + " (custom)";
-                        opt.selected = true;
-                        settingModelSelect.appendChild(opt);
-                    }
-                }
-            } catch (e) {
-                console.error("Error fetching models", e);
-            }
-        }
-
-        async function unloadModel() {
-            const model = document.getElementById('setting-model').value;
-            const url = document.getElementById('setting-url').value;
-            if (!confirm(`Vuoi scaricare il modello ${model} dalla memoria?`)) return;
-
-            try {
-                const res = await fetch('/unload', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ model: model, ollama_url: url })
-                });
-                const data = await res.json();
-                alert(data.message);
-            } catch (e) {
-                alert("Errore unload: " + e);
-            }
-        }
 
         // ==================== BIBBIA FUNCTIONS ====================
         const bibbiaModal = document.getElementById('bibbia-modal');
@@ -1266,7 +922,6 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === "Escape") {
                 closeBibbia();
-                closeSettings();
             }
         });
     </script>

@@ -79,6 +79,9 @@ class BibbiaManager:
 @ REGOLE_NARRATIVE
   + [regola_1]: [descrizione]
   + [regola_2]: [descrizione]
+
+@ GLOSSARIO
+  + [Termine]: [Definizione]
 """
 
     def generate_modelfile_content(self, model_base="gemma3:27b-it-qat"):
@@ -123,6 +126,59 @@ PARAMETER num_ctx 32768
         except Exception as e:
             logging.error(f"Errore salvataggio MODELFILE: {e}")
             return None
+
+    def add_glossary_term(self, term, definition):
+        """Aggiunge un termine al glossario nella BIBBIA."""
+        dna = self.load_dna()
+        
+        # Check if term exists
+        if f"+ {term}:" in dna:
+            return False # Already exists (naive check)
+            
+        # Find @ GLOSSARIO section
+        if "@ GLOSSARIO" not in dna:
+            # Append if missing
+            dna += "\n@ GLOSSARIO\n"
+            
+        # Append term to GLOSSARIO section
+        # We need to insert it after "@ GLOSSARIO"
+        # Since it's unstructured text, we can just append to end if section is last, 
+        # or use regex to insert.
+        # Simplest: Append to end of file if we assume GLOSSARIO is last.
+        # Safer: Split by sections.
+        
+        # Regex approach to find end of GLOSSARIO section or next section
+        pattern = r'(@ GLOSSARIO.*?)(?=\n@ |\Z)' 
+        match = re.search(pattern, dna, re.DOTALL)
+        
+        if match:
+            section = match.group(1)
+            new_section = section.rstrip() + f"\n  + {term}: {definition}\n"
+            dna = dna.replace(section, new_section)
+        else:
+             # Section not found despite check? Append it.
+             dna += f"\n@ GLOSSARIO\n  + {term}: {definition}\n"
+             
+        return self.save_dna(dna)
+    
+    def get_glossary(self):
+        """Restituisce il dizionario del glossario {termine: definizione}."""
+        dna = self.load_dna()
+        glossary = {}
+        
+        # Extract section
+        match = re.search(r'@ GLOSSARIO(.*?)(?=\n@ |\Z)', dna, re.DOTALL)
+        if match:
+             content = match.group(1)
+             for line in content.split('\n'):
+                 line = line.strip()
+                 if line.startswith('+'):
+                     parts = line[1:].split(':', 1)
+                     if len(parts) >= 1:
+                         key = parts[0].strip()
+                         val = parts[1].strip() if len(parts) > 1 else ""
+                         glossary[key] = val
+        return glossary
 
     # ==================== LIVELLO 2: CRONACA ====================
     

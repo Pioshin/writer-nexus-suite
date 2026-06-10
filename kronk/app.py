@@ -167,8 +167,9 @@ def home():
 @app.route('/files', methods=['GET'])
 def get_files():
     try:
-        req_path = request.args.get('path')
-        sandbox_root = sandbox.get_sandbox_path(req_path)
+        conf_paths = config_manager.get_all().get("paths", {})
+        sandbox_root = conf_paths.get("sandbox_root") or sandbox.DEFAULT_SANDBOX_DIR
+        sandbox_root = os.path.abspath(sandbox_root)
         return jsonify({"files": sandbox.list_files(sandbox_root), "current_path": sandbox_root})
     except Exception as e:
         logging.error(f"Errore lista file: {e}")
@@ -178,8 +179,9 @@ def get_files():
 def read_file_content():
     try:
         filename = request.args.get('filename')
-        req_path = request.args.get('path')
-        sandbox_root = sandbox.get_sandbox_path(req_path)
+        conf_paths = config_manager.get_all().get("paths", {})
+        sandbox_root = conf_paths.get("sandbox_root") or sandbox.DEFAULT_SANDBOX_DIR
+        sandbox_root = os.path.abspath(sandbox_root)
         
         if not filename:
             return jsonify({"error": "Filename required"}), 400
@@ -269,9 +271,56 @@ def chat():
             return jsonify({"error": "Messaggio mancante"}), 400
         
         model_name = data.get('model', '')
+
+        # --- IODA COMMAND INTERCEPT ---
+        msg_lower = user_msg.lower().strip()
+        wake_words = ["ioda", "yoda", "joda", "computer", "ehi", "adam", "nexus", "sistema", "attiva"]
+        is_ioda_cmd = False
+        user_msg_cleaned = user_msg.strip()
         
-        req_path = data.get('sandbox_path')
-        sandbox_root = sandbox.get_sandbox_path(req_path)
+        # Check if it starts with /ioda or any wake word
+        if msg_lower.startswith("/ioda"):
+            is_ioda_cmd = True
+            user_msg_cleaned = user_msg[len("/ioda"):].strip()
+            if not user_msg_cleaned:
+                is_ioda_cmd = False
+        else:
+            for w in wake_words:
+                if msg_lower.startswith(w):
+                    remaining = msg_lower[len(w):]
+                    if not remaining or remaining[0] in " .,!?;":
+                        is_ioda_cmd = True
+                        break
+                        
+        if is_ioda_cmd:
+            def generate_ioda_forward():
+                yield json.dumps({"action": "Inoltro comando a IODA..."}) + "\n"
+                try:
+                    # Send POST to IODA Local Command Server on 8090
+                    r = requests.post("http://127.0.0.1:8090/command", json={"text": user_msg_cleaned}, timeout=3)
+                    if r.status_code == 200:
+                        yield json.dumps({"token": f"Comando inoltrato all'interfaccia IODA: **\"{user_msg_cleaned}\"**\n\nElaborazione in corso sull'overlay..."}) + "\n"
+                    else:
+                        yield json.dumps({"token": f"Errore durante l'invio del comando a IODA. Codice stato: {r.status_code}"}) + "\n"
+                except Exception as e:
+                    yield json.dumps({"token": f"Impossibile connettersi a IODA. Assicurati che l'interfaccia IODA sia aperta.\n\n*(Dettaglio errore: {e})*"}) + "\n"
+                yield json.dumps({"action": "Pronto"}) + "\n"
+                
+                # Save session history
+                try:
+                    save_chat_session(chat_id, history + [
+                        {"role": "user", "content": user_msg},
+                        {"role": "assistant", "content": f"Comando inoltrato a IODA: \"{user_msg_cleaned}\""}
+                    ])
+                except Exception as save_err:
+                    logging.error(f"Errore salvataggio sessione IODA forward: {save_err}")
+
+            return Response(stream_with_context(generate_ioda_forward()), mimetype='application/x-ndjson')
+        # --- END IODA COMMAND INTERCEPT ---
+        
+        conf_paths = config_manager.get_all().get("paths", {})
+        sandbox_root = conf_paths.get("sandbox_root") or sandbox.DEFAULT_SANDBOX_DIR
+        sandbox_root = os.path.abspath(sandbox_root)
 
         # Utilizza global_llm_client invece di params locali
         # (Opzionale: aggiornare config temporanea se arrivano params? Per ora usiamo globale)
