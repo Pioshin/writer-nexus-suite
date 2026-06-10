@@ -5,36 +5,33 @@ from llm_client import LLMClient
 
 class OllamaClient:
     def __init__(self, model=None, base_url=None, provider=None, api_key=None, ctx=None, timeout=None, keep_alive=None):
-        # Defaults a None: la config viene caricata da UnifiedConfigManager dentro LLMClient.
-        # Passare valori espliciti solo per override manuali (rari).
+        # LiteLLM-compatible: model aliases, base_url defaults to LiteLLM :4000/v1, config from config.json
+        # Ignore legacy params provider/ctx/keep_alive (OpenAI format doesn't use them)
         self.client = LLMClient(
-            provider=provider,
-            model=model,
-            base_url=base_url,
-            api_key=api_key,
-            ctx=ctx,
-            timeout=timeout,
-            keep_alive=keep_alive
+            model=model or "default",
+            base_url=base_url or "http://127.0.0.1:4000/v1",
+            api_key=api_key or "",
+            timeout=timeout or 300
         )
 
     def update_config(self, provider=None, model=None, base_url=None, api_key=None, ctx=None, timeout=None, keep_alive=None):
-        """Update configuration dynamically."""
-        self.client.update_config(provider, model, base_url, api_key, ctx, timeout, keep_alive)
+        """Update configuration dynamically (legacy compatibility)."""
+        self.client.update_config(model=model, base_url=base_url, api_key=api_key)
 
     @property
     def model(self): return self.client.model
     @property
     def base_url(self): return self.client.base_url
     @property
-    def ctx(self): return self.client.ctx
+    def ctx(self): return 4096  # default context window for Ollama
     @property
     def timeout(self): return self.client.timeout
     @property
-    def provider(self): return self.client.provider
+    def provider(self): return "litellm"
     @property
     def api_key(self): return self.client.api_key
     @property
-    def keep_alive(self): return self.client.keep_alive
+    def keep_alive(self): return "5m"
 
     def extract_json(self, text):
         """Estrae JSON con fallback progressivi e riparazione automatica (StoryForge style)."""

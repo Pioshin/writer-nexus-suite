@@ -27,13 +27,11 @@ config_manager = UnifiedConfigManager()
 # Initialize LLMClient with shared config
 ai_config = config_manager.get_ai_config()
 global_llm_client = LLMClient(
-    provider=ai_config.get("provider", "ollama"),
-    model=ai_config.get("model", "adam:latest"),
-    base_url=ai_config.get("url", "http://127.0.0.1:11434"),
+    model=ai_config.get("model", "default"),
+    base_url=ai_config.get("url", "http://127.0.0.1:4000/v1"),
     api_key=ai_config.get("api_key", ""),
-    ctx=ai_config.get("ctx", 32768),
     timeout=ai_config.get("timeout", 180),
-    keep_alive=ai_config.get("keep_alive", "5m")
+    temperature=ai_config.get("temperature", 0.7)
 )
 
 # ===== LOGGING CONFIGURATION =====

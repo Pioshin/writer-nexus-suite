@@ -241,15 +241,21 @@ def to_bibbia_format(characters, world_elements, synopses=None, title="", glossa
         sinossi_sections.append("")
         
         # Formato: @ cap_N seguito da riassunto denso
-        for syn in synopses:
-            post_num = syn.get('post_number', 0)
-            syn_title = syn.get('title', '')
-            summary = syn.get('summary', '')
-            
+        for idx, syn in enumerate(synopses, 1):
+            # Handle both dict and string formats
+            if isinstance(syn, dict):
+                post_num = syn.get('post_number', idx)
+                syn_title = syn.get('title', '')
+                summary = syn.get('summary', '')
+            else:
+                post_num = idx
+                syn_title = ''
+                summary = str(syn)
+
             sinossi_sections.append(f"@ cap_{post_num}")
             if syn_title:
                 sinossi_sections.append(f"  + titolo: {syn_title}")
-            
+
             if summary:
                 for line in summary.strip().split('\n'):
                     if line.strip():
