@@ -1,6 +1,5 @@
 import os
 import memory
-import sandbox
 
 # Setup
 root = os.path.abspath("./sandbox")

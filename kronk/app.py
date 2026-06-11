@@ -346,7 +346,7 @@ def chat():
                     mem = memory.MemoryManager(sandbox_root)
                     memory_context = mem.search(user_msg, top_k=2)
                     mem_str = "\n".join([f"- {m}" for m in memory_context]) if memory_context else "Nessun ricordo trovato."
-                except Exception as me:
+                except Exception:
                     # logging.warning(f"Errore Memoria: {me}")
                     mem_str = "Memoria non disponibile."
 

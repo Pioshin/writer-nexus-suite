@@ -79,7 +79,7 @@ except ImportError as e:
 try:
     from . import toon
 except ImportError:
-    import toon
+    pass
 
 
 class ManuscriptMemory:

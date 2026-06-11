@@ -9,12 +9,8 @@ Implementa la "Strategia del Cursore Narrativo":
 
 import os
 import re
-import json
 import logging
-from datetime import datetime
 
-import toon
-import memory
 
 class BibbiaManager:
     """Gestisce i 3 livelli della strategia narrativa."""

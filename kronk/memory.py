@@ -1,5 +1,4 @@
 import os
-import json
 import logging
 import requests
 import numpy as np
@@ -125,7 +124,7 @@ class MemoryManager:
             encoder.add_text(toon_data)
             
             # 4. Costruisci il video e l'indice
-            print(f"Costruzione video memoria (TOON) in corso...")
+            print("Costruzione video memoria (TOON) in corso...")
             encoder.build_video(self.memory_file, self.index_file, show_progress=False)
             
             # 5. Forza il ricaricamento del retriever

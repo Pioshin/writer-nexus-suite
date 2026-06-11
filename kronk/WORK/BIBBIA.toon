@@ -66,3 +66,31 @@
     | desc: Industria di promozione erotica per adulti, dominante nella società del pianeta................
   + mistero_particolarme: Mistero particolarmente grande
     | desc: Evento misterioso che ha iniziato a emergere nella regione, segnalato come un grande enigma............
+
+
+# === IMPORTATO DA BOOKANALYZER ===
+# BIBBIA - Terrax
+
+@ PERSONAGGI
+  + hector: Hector
+    | ruol: Personaggio secondario
+    | desc: Hector guardò il cielo stellato di Terrax.
+
+@ ALTRO
+  + unknown: Unknown
+    | desc: 
+
+
+
+# === IMPORTATO DA BOOKANALYZER ===
+# BIBBIA - The Lost Kingdom
+
+@ PERSONAGGI
+  + arturo: Arturo il Saggio
+    | ruol: Re
+    | desc: Il re Arturo il Saggio governava con saggezza.
+
+@ OGGETTI
+  + magia_di_sophia: magia di Sophia
+    | desc: La figlia del re, la Principessa Sophia, era rinomata per le sue capacità magiche.
+

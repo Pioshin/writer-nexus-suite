@@ -15,3 +15,8 @@ kronk/WORK/*.mp4
 kronk/WORK/*.bin
 bka/backend/*.log
 *.bak
+
+# Artefatti derivati memoria BIBBIA (ricostruibili)
+kronk/WORK/bibbia_memory.*
+kronk/WORK/agent_memory.*
+*.log

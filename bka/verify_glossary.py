@@ -1,6 +1,5 @@
 
 import sys
-import os
 
 # Add paths
 sys.path.append("/home/pioshin/AI/Projects/P_NOOS/ADAM-suite/bka")
